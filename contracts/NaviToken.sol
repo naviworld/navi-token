@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.15;
 
 import "./StandardToken.sol";
 import "./Ownable.sol";
@@ -80,7 +80,7 @@ contract NaviToken is StandardToken, Ownable {
 
 	function defrostEquitiesTokens() onlyOwner {
 
-		require(now > START_ICO_TIMESTAMP);
+		require(now>START_ICO_TIMESTAMP);
 		require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
 		for (uint index=0; index<vIcedBalancesEquities.length; index++) {
 			address currentAddress = vIcedBalancesEquities[index];
