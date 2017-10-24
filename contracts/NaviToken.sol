@@ -11,7 +11,7 @@ contract NaviToken is StandardToken, Ownable {
 	string public constant symbol    = "NVT";
 	uint256 public constant decimals = 18;
 
-	uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000;// * 10 ** decimals;
+	uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
 	// Freeze duration for TeamAndAdvisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
@@ -50,11 +50,12 @@ contract NaviToken is StandardToken, Ownable {
    * @param _vamounts address The address which you want to transfer to
    */
   function batchAssignTokens(address[] _vaddr, uint[] _vamounts, uint[] _vDefrostClass ) onlyOwner {
+	  
 			require ( batchAssignStopped == false );
-			require ( _vaddr.length == _vamounts.length && 
-							_vamounts.length == _vamounts.length && _vDefrostClass.length == _vDefrostClass.length);
+			require ( _vaddr.length == _vamounts.length && _vaddr.length == _vDefrostClass.length);
 			//Looping into input arrays to assign target amount to each given address
 			for (uint index=0; index<_vaddr.length; index++) {
+
 				address toAddress = _vaddr[index];
 				uint amount = _vamounts[index] * 10 ** decimals;
 				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=equity , 2=advisor 
@@ -78,6 +79,10 @@ contract NaviToken is StandardToken, Ownable {
 		return now;
 	}
 
+	function canDefrostEquities()constant returns (bool){
+		return elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS;
+	}
+
 	function defrostEquitiesTokens() onlyOwner {
 
 		require(now>START_ICO_TIMESTAMP);
@@ -89,6 +94,10 @@ contract NaviToken is StandardToken, Ownable {
 				balances[currentAddress] = balances[currentAddress] + amountToDefrost;
 			}
 		}
+	}
+
+	function canDefrostTeamAndAdvisors()constant returns (bool){
+		return elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS;
 	}
 
 	function defrostTeamAndAdvisorsTokens() onlyOwner {

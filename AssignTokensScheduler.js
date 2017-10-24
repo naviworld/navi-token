@@ -94,7 +94,7 @@ function timerAssignFunction() {
 
             }else{
 
-                console.log('vAccounts[i] = ' + vAccounts[i] + '  - numToSend = ' + numToSend)
+                //console.log('vAccounts[i] = ' + vAccounts[i] + '  - numToSend = ' + numToSend)
                 var vv = vAccounts[i].split(",");
                 if(vv.length == 3){
                     vaddr.push(vv[0]);
