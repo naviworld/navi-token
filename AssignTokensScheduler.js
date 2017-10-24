@@ -1,4 +1,39 @@
 const fs = require('fs');
+const path = require('path');
+
+function AssignObject(chunkSize, fpath, interval, contractaddr, pwd) {
+    this.chunkSize = parseInt(chunkSize)
+    this.filePath = fpath
+    this.intervalSec = parseInt(interval)
+    this.contractaddress = contractaddr
+    this.accountpwd = pwd
+}
+
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
+const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
+const CHUNKSIZE_FILEPATH = path.resolve(__dirname) + '/PARAMS/chunk_size.txt'
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt'
+const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/PARAMS/assign_interval_sec.txt'
+const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
+
+var urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
+var ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
+var chunkSize = require('fs').readFileSync(CHUNKSIZE_FILEPATH, 'utf-8')
+var assignIntervalSec = parseInt(1000 * require('fs').readFileSync(INTERVALSEC_FILEPATH, 'utf-8'))
+var contractAddress  = require('fs').readFileSync(CONTRACTADDRESS_FILEPATH).toString();
+
+console.log('-----------------------------------------------------')
+console.log('urlEthereumNode = ' + urlEthereumNode)
+console.log('ownerPwd = ' + ownerPassword)
+console.log('chunkSize = ' + chunkSize)
+console.log('filePathAccountsAmounts = ' + ACCOUNTSAMOUNTS_FILEPATH)
+console.log('assignIntervalSec = ' + assignIntervalSec)
+console.log('contractAddress = ' + contractAddress)
+console.log('-----------------------------------------------------')
+
+objAssignParams = new AssignObject(chunkSize,ACCOUNTSAMOUNTS_FILEPATH,assignIntervalSec,contractAddress, ownerPassword);
+
+console.log('contractaddress =  ' + objAssignParams.contractaddress + ' owner pwd = ' + objAssignParams.accountpwd );
 
 const NaviToken = require('./build/contracts/NaviToken.json');
 const Web3 = require('web3');
@@ -7,17 +42,10 @@ web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
 var ACTIONS_PATH = "./ACTIONS"
 var LOGS_PATH = "./LOGS/"
 
-var urlEthereumNode = "http://localhost:8545"
-var CONTRACT_FILE = "./PARAMS/contract_address.txt"
-var contractAddress  = require('fs').readFileSync(CONTRACT_FILE).toString();
-console.log('contractAddress = ' + contractAddress)
-
-//naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
-naviContract = new web3.eth.Contract(NaviToken.abi,  contractAddress);
+naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 console.log('naviContract = ' + naviContract)
-//naviContract.options.address = contractAddress;
 console.log('abi = ' + NaviToken.abi)
-naviContract.elapsedMonthsFromICOStart( function(error, result){
+naviContract.getAddressBalance( web3.eth.accounts[0], function(error, result){
     if (!error) {
         console.log("OWNER: getAddressBalance worked : " + result);          
     } else {
@@ -25,288 +53,107 @@ naviContract.elapsedMonthsFromICOStart( function(error, result){
     }
 });
 
-// unlock ethereum base account
+// unlock ethereum base account (unless we are on testrpc)
 //web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
 console.log('unlockAccount OK')
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
-/*
-var vIcoProjects = [];
-var vIcoInvestors = [];
+// read account/amounts file to assign -------------------------------------------------
+vAccounts  = require('fs').readFileSync(ACCOUNTSAMOUNTS_FILEPATH).toString().split('\n')
+console.log('NUM ACCOUNTS = ' + vAccounts.length)
 
-function IcoProject(icoaddress, start, stop, urlproject, hashwp) {
-    this.icoaddress = icoaddress
-    this.blockstart = parseInt(start)
-    this.blockstop = parseInt(stop)
-    this.url_project = urlproject;
-    this.hash_white_paper = hashwp;
-}
+// launch assign timer  ----------------------------------------------------------------
+console.log('intervalSec = ' + assignIntervalSec)
+assignTimerId = setInterval(timerAssignFunction, assignIntervalSec);
 
-function IcoInvestor(icoaddress) {
-    this.investoraddress = icoaddress
-}
+var cntTimer = parseInt(0)
+function timerAssignFunction() {
 
-function getRandomInt(offset, max){
-    return offset + Math.floor(Math.random() * max) 
-}
+        console.log('timerAssignFunction scheduler call ............................. cntTimer = ' + cntTimer)
+        var numToSend = parseInt(0)
+        var from = parseInt(cntTimer * objAssignParams.chunkSize)
+        var to = parseInt(from) + parseInt(objAssignParams.chunkSize)
+        console.log('from = ' + from + '  -  to = ' + to)
 
-var owner = web3.eth.accounts[0];
-console.log('owner = ' +  owner)
-var Lacc = web3.eth.accounts.length
-console.log('accounts L = ' +  Lacc)
-
-var lastBlock = web3.eth.getBlock('latest');
-console.log('block last number = ' +  lastBlock.number)
-var maxStopBlock = 0;
-
-var numProjects = icorobotContract.getNumProjects();
-console.log('numProjects should be 0 => numProjects = ' + numProjects)
-
-    if(Lacc<50){
-        console.log('ERROR: !!!!!!!!!!!!!! number of accounts too low !!!!!!!!!!!!!');
-    }
-    
-    // add 10 ico projects    
-    for(var p=1;p<=10;p++){
-        var addr = web3.eth.accounts[p]
-        //set random start/end block numbers for each project
-        var start = lastBlock.number + getRandomInt(10,10);
-        var stop = start + getRandomInt(30,10);
-        if(stop > maxStopBlock){
-            maxStopBlock = stop;
+        if( from >= vAccounts.length){
+            console.log('timer stopped //////////////////////////////////');
+            clearInterval(assignTimerId);
         }
-        var url = "www.google.fr";
-        var hashwp = "0x8888811111000000000000000000000000000000000000000000000000000000";
-        vIcoProjects.push(new IcoProject(addr, start, stop, url, hashwp));
-    }
-    console.log('num projects = ' +  vIcoProjects.length)
-    console.log('*******************    maxStopBlock  = ' +  maxStopBlock)
+        // fill address/amounts arrays
+        var vaddr = []
+        var vamounts = []
+        var vclass = []
+        for(i=from;i<to;i++){
 
-    // add 39 investors
-    for(var i=11;i<Lacc;i++){
-        var invaddr = web3.eth.accounts[i]
-        vIcoInvestors.push(new IcoInvestor(invaddr));
-    }
-    console.log('num investors = ' +  vIcoInvestors.length)
+            // check the end 
+            if(i>=vAccounts.length){
+                // stop timer
+                console.log('timer stopped //////////////////////////////////');
+                clearInterval(assignTimerId);
+                break;
 
+            }else{
 
-// add projects to contract 
-console.log('adding 10 Ico Projects  ---------------------------------------------  ' + vIcoProjects.length);
-for(var k=0;k<vIcoProjects.length;k++){
+                console.log('vAccounts[i] = ' + vAccounts[i] + '  - numToSend = ' + numToSend)
+                var vv = vAccounts[i].split(",");
+                if(vv.length == 3){
+                    vaddr.push(vv[0]);
+                    vamounts.push(parseInt(vv[1]));
+                    vclass.push(parseInt(vv[2]));
+                    //console.log(numToSend + ' => addr='+vv[0] + ' amount=' + vv[1] + ' class=' + vv[2])
+                    numToSend++;
+                }/*else{
+                    console.log('Fatal error in data format')
+                    numToSend = -1;
+                    break;
+                }*/
+            }
+        }
 
-        console.log('calling addIcoProject ' + k + ' ..............');
-        var _icoaddress = vIcoProjects[k].icoaddress;
-        var _blockstart = vIcoProjects[k].blockstart;
-        var _blockstop = vIcoProjects[k].blockstop;
-        var _urlproject = vIcoProjects[k].url_project;
-        var _hashwp = vIcoProjects[k].hash_white_paper;
-        console.log('ico args = ' + _icoaddress + ' ' + _blockstart + ' ' +_blockstop + ' ' +_urlproject + ' ' + _hashwp);
-        icorobotContract.addIcoProject(_icoaddress, _blockstart, _blockstop,_urlproject,_hashwp, 
-                                            { from: _icoaddress, value: 25000, gas : 444000 }, function(error, result){
-                if (!error) {
-                    console.log("addIcoProject OK: " + result);  // OK
-                } else {
-                    console.log("Error addIcoProject: " + error); 
-                }
-        });
+        console.log('numToSend = ' + numToSend + '  - vaddr.length = '+vaddr.length + '  -  vamounts.length = '+  vamounts.length);
+        if(numToSend === vaddr.length && numToSend === vamounts.length && numToSend == vclass.length)
+        {
+              console.log('calling timerAssignFunction ....... ');
+              console.log('param =  ' + objAssignParams.contractaddress + ' ' + objAssignParams.accountpwd +' ' + numToSend);
+              
+              var numSent = sendAssignChunkToSmartContract(objAssignParams.contractaddress,objAssignParams.accountpwd,
+                                                      vaddr, vamounts, vclass, numToSend);
+              console.log("...END -> cntTimer = " + cntTimer)
+        }
+        else{
+          console.log('Fatal error: numToSend / size arrays mismatch ')
+        }
+        
+        cntTimer++;
+        console.log('.......................................................................')
 }
 
-// ACTIONS : 
-// 1 = lock
-// 2 = promise
-// 3 = retire
-waitTimerId = setInterval(waitForProjectsAdd, 4000);
-function waitForProjectsAdd(){
-    
-    var numProjects = icorobotContract.getNumProjects();
-    if(numProjects>=10){
-        clearTimeout(waitTimerId);
-    }else{
-        console.log('waitForProjectsAdd ....................   => numProjects = ' + numProjects)
-    }   
-}
 
+function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamounts, vclass, numToSend) {
 
-console.log('start scheduler ------------------------------------------------------------------------------')
-console.log('start scheduler ------------------------------------------------------------------------------')
-console.log('---------------')
-
-
-function lockMoneyToIcoProject(_icoaddress, _investoraddress, _amount) {
-    
-    /*dataparam = icorobotContract.lockMoneyToIco.getData(_icoaddress)
-    console.log("dataparam = " + dataparam );
-    var estimatedGas = web3.eth.estimateGas({data: dataparam})
+    dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
+    //console.log("dataparam = " + dataparam );
+    var estimatedGas = web3.eth.estimateGas({data: dataparam})    
     console.log("estimate = " + estimatedGas );
+    estimatedGas = estimatedGas * 20
 
     gasLimit = web3.eth.getBlock("latest").gasLimit
     console.log("gasLimit = " + gasLimit);
 
     gasOk=0 
     if(estimatedGas  < gasLimit){
-        gasOk=estimatedGas;
+      gasOk=estimatedGas;
     }else{
-        gasOk=gasLimit;
+      gasOk=gasLimit;
     }
-    console.log("gasOk = " + gasOk );*/
-/*    gasOk = 222000
-    icorobotContract.lockMoneyToIco(_icoaddress, { gas: gasOk, from: _investoraddress, value: _amount },  function(error, result){
+    console.log("gasOk = " + gasOk );
+
+    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: gasOk },  function(error, result){
             if (!error) {
-                console.log("lockMoneyToIco OK");  // OK    
-                //saveLockMoneyActionToFile(false, _icoaddress, _investoraddress, _amount);        
+                console.log("batchAssignTokens2Arrays OK:" + result);  // OK
             } else {
-                console.log(" lockMoneyToIco Error: " + error); 
-                //saveErrorTofile("lockMoneyToIco")
+                console.log("Error: " + error); 
             }
     });
 }
 
-function saveLockMoneyActionToFile(isTry, _icoaddress, _investoraddress, _amount, lastB, startB, endB){
-    var filepath;
-    if(isTry==true){
-        filepath = ACTIONS_PATH + '/trylock_' + Date.now() + '.txt';
-    }else{
-        filepath = ACTIONS_PATH + '/postlock_' + Date.now() + '.txt';
-    }
-    var filecontent = _icoaddress + ';' + _investoraddress + ';' +_amount + ';' + lastB+ ';' +startB+ ';' + endB;
-    console.log("saveLockMoneyActionToFile filecontent = " + filecontent); 
-    fs.writeFile(filepath, filecontent, function(err) {
-        if(err) {
-            return console.log(err);
-        }
-        console.log("The file " + ACTIONS_PATH + " was saved!");
-    }); 
-}
-
-
-function intendMoneyToIcoProject(_icoaddress, _investoraddress, _amount) {
-    
-    gasOk = 222000
-    icorobotContract.intendMoneyToIco(_icoaddress, { gas: gasOk, from: _investoraddress, value: _amount },  function(error, result){
-            if (!error) {
-                console.log("intendMoneyToIco OK.");  // OK
-                //saveIntendMoneyActionToFile(false, _icoaddress, _investoraddress, _amount);            
-            } else {
-                console.log(" lockMoneyToIco Error: " + error); 
-            }
-    });
-}
-
-function saveIntendMoneyActionToFile(isTry, _icoaddress, _investoraddress, _amount, lastB, startB, endB){
-    var filepath;
-    if(isTry==true){
-        filepath = ACTIONS_PATH + '/tryintend_' + Date.now() + '.txt';
-    }else{
-        filepath = ACTIONS_PATH + '/postintend_' + Date.now() + '.txt';
-    }
-    var filecontent = _icoaddress + ';' + _investoraddress + ';' +_amount + ';' + lastB+ ';' +startB+ ';' + endB;
-    fs.writeFile(filepath, filecontent, function(err) {
-        if(err) {
-            return console.log(err);
-        }
-        console.log("The file " + ACTIONS_PATH + " was saved!");
-    }); 
-}
-
-function saveLogFile(filename, filecontent){
-    var filepath = LOGS_PATH + filename;
-    fs.writeFile(filepath, filecontent, function(err) {
-        if(err) {
-            return console.log(err);
-        }
-        console.log("The file " + filepath + " was saved!");
-    }); 
-}
-
-// scheduler:  
-var cntTimer = parseInt(0)
-var cumulLockedMoney=0;
-var cumulIntendeddMoney=0;
-var cumulRetiredMoney=0;
-function timerTestFunction() {
-
-
-        var blockLast = web3.eth.getBlock('latest');
-    
-        console.log('timerscheduler call: block = ' + blockLast.number + '........  cntTimer =' + cntTimer)
-
-        // pick up a random project
-        var idxP = getRandomInt(0,vIcoProjects.length);
-        addrico = vIcoProjects[idxP].icoaddress;
-        startB = vIcoProjects[idxP].blockstart;
-        endB = vIcoProjects[idxP].blockstop;
-        console.log('addrico = '+ addrico);
-        // pick up a random investor
-        var idxI = getRandomInt(0,vIcoInvestors.length);
-        addrinvestor = vIcoInvestors[idxI].investoraddress;
-        console.log('addrinvestor = '+ addrinvestor);
-        // pick up a random sum of money from investor
-        var money = getRandomInt(5000,15000); // entre 15 et 20k
-        console.log('money = '+ money);
-        // pick up a random action : lock, promise, retire
-        var action = getRandomInt(1,3); // entre 15 et 20k
-        
-        // send tx to contract and save action  to file
-        if(action == 1){            // lock money to  ICO contract
-            console.log('action lock triggered...')
-            cumulLockedMoney+=money;
-            saveLockMoneyActionToFile(true, addrico, addrinvestor, money, blockLast.number, startB, endB)
-            lockMoneyToIcoProject(addrico, addrinvestor, money);
-        }else if(action == 2){      // promise money to  ICO contract 
-            console.log('action promise triggered...')   
-            cumulLockedMoney+=money;        
-            saveIntendMoneyActionToFile(true, addrico, addrinvestor, money, blockLast.number, startB, endB)
-            intendMoneyToIcoProject(addrico, addrinvestor, money);
-        }else if(action == 3){      // retire ICO contract  (if any)     
-            console.log('action retire triggered...') 
-            cumulRetiredMoney+=money;      
-            //retireMoneyToIcoProject();
-        }
-
-
-        // check all projects are finished
-        //var bEnd = icorobotContract.areAllICoFinished();
-        var numRunning = icorobotContract.getNumRunningIcos();
-        console.log('Num Running Icos = ' + numRunning);
-      
-        cntTimer++;
-        console.log('..........................................................................')
-}
-
-
-
-// launch assign timer  ----------------------------------------------------------------
-var schedulerIntervalSec = parseInt(8*1000)
-console.log('schedulerIntervalSec = ' + schedulerIntervalSec)
-schedulerTimerID = setInterval(timerTestFunction, schedulerIntervalSec);
-
-
-function IcoProjectFromFile(icoaddress, start, stop, urlproject, hashwp) {
-    this.icoaddress = icoaddress
-    this.lockedmoney =0;
-    this.intendedmoney =0;
-    this.retiredmoney=0;
-}
-
-
-function checkAllMoney(){
-
-    // read logged money files (loked, intended, retired)
-    fs.readdir(ACTIONS_PATH, (err, dir)=>{
-        for(var i=0; i<dir.length; i++){
-            let fileName = dir[i];
-            console.log("A: "+fileName);
-            let filefile = dir+"\\"+fileName;
-            fs.lstat(filefile, function(err, stats) {
-                console.log("B: "+fileName);
-            });
-        }
-    });
-    
-    // calc logged money (loked, intended, retired) for ech project  
-     //  proj = new IcoProjectFromFile( ...
-
-    // check amount raised in the blockchain is equal to logged
-}
-
-*/
