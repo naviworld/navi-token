@@ -15,9 +15,9 @@ contract NaviToken is StandardToken, Ownable {
 	// Freeze duration for TeamAndAdvisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
-	uint public constant DEFROST_MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
-	uint public constant DEFROST_EQUITIES_MONTHS = 4; 
-	uint public constant DEFROST_TEAMADVISOR_MONTHS = 8; 
+	int public constant DEFROST_MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
+	int public constant DEFROST_EQUITIES_MONTHS = 4; 
+	int public constant DEFROST_TEAMADVISOR_MONTHS = 8; 
 
 	// Fields that can be changed by functions
 	address[] vIcedBalancesEquities;
@@ -68,9 +68,20 @@ contract NaviToken is StandardToken, Ownable {
 				else if(defrostClass == 1){
 					// equity account: tokens to defrost
 					vIcedBalancesEquities.push(toAddress);
+					if(mapIcedBalancesEquities[toAddress]>0){
+						mapIcedBalancesEquities[toAddress] += amount;
+					}else{
+						mapIcedBalancesEquities[toAddress] = amount;
+					}
+					
 				}else if(defrostClass == 2){
 					// TeamAndAdvisors account: tokens to defrost
-					vIcedBalancesTeamAndAdvisors.push(toAddress) ;
+					vIcedBalancesTeamAndAdvisors.push(toAddress);
+					if(mapIcedBalancesTeamAndAdvisors[toAddress]>0){
+						mapIcedBalancesTeamAndAdvisors[toAddress] += amount;
+					}else{
+						mapIcedBalancesTeamAndAdvisors[toAddress] = amount;
+					}
 				}
 			}
 	}
@@ -85,13 +96,17 @@ contract NaviToken is StandardToken, Ownable {
 
 	function defrostEquitiesTokens() onlyOwner {
 
-		require(now>START_ICO_TIMESTAMP);
-		require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
+		// !!!tmp require(now>START_ICO_TIMESTAMP);
+		// !!!tmp require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
 		for (uint index=0; index<vIcedBalancesEquities.length; index++) {
 			address currentAddress = vIcedBalancesEquities[index];
 			uint256 amountToDefrost = mapIcedBalancesEquities[currentAddress];
 			if ( amountToDefrost > 0 ) {
-				balances[currentAddress] = balances[currentAddress] + amountToDefrost;
+				if(balances[currentAddress] > 0){
+					balances[currentAddress] += amountToDefrost;
+				}else{
+					balances[currentAddress] = amountToDefrost;
+				}
 			}
 		}
 	}
@@ -102,19 +117,31 @@ contract NaviToken is StandardToken, Ownable {
 
 	function defrostTeamAndAdvisorsTokens() onlyOwner {
 
-		require(now > START_ICO_TIMESTAMP);
-		require(elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS);
+		// !!!tmp require(now > START_ICO_TIMESTAMP);
+		// !!!tmp require(elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS);
 		for (uint index=0; index<vIcedBalancesTeamAndAdvisors.length; index++) {
 			address currentAddress = vIcedBalancesTeamAndAdvisors[index];
 			uint256 amountToDefrost = mapIcedBalancesTeamAndAdvisors[currentAddress];
 			if ( amountToDefrost > 0 ) {
-				balances[currentAddress] = balances[currentAddress] + amountToDefrost;
+				if(balances[currentAddress] > 0){
+					balances[currentAddress] += amountToDefrost;
+				}else{
+					balances[currentAddress] = amountToDefrost;
+				}
 			}
 		}
 	}
 
-	function elapsedMonthsFromICOStart() constant returns (uint elapsed) {
-		elapsed = ((now-START_ICO_TIMESTAMP)/60)/DEFROST_MONTH_IN_MINUTES;
+	function getNow() constant returns (uint) {
+		return now;
+	}
+
+	function getStartIcoTimestamp() constant returns (uint) {
+		return START_ICO_TIMESTAMP;
+	}
+
+	function elapsedMonthsFromICOStart() constant returns (int elapsed) {
+		elapsed = (int(now-START_ICO_TIMESTAMP)/60)/DEFROST_MONTH_IN_MINUTES;
 	}
 
 	function stopBatchAssign() onlyOwner {
