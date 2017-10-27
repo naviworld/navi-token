@@ -3,7 +3,7 @@ HOW TO TEST
 
 - download the project
 - unzip the NAV.zip file on the same folder to get the PARAMS/OUTPUTS/DEFROST folders
-- set your parameters in
+- set your parameters changing files in the PARAMS folder
 - run an ethereum testnet node 
 - you must have/create 10 accounts on your testnet
 
@@ -11,6 +11,7 @@ HOW TO TEST
 - run truffle test  (install missing modules - if any)
 
 - set the number of accounts you want to create in the num_accounts_2_create.txt file (PARAMS folder)
+
 - launch the generateAssingAccounts.js script to get N accounts  (first 10 are true accounts, others are fake ones)
 	- account[0] is the owner
 	- account[1][2][3] are TEAM/ADVISORS 
