@@ -14,8 +14,8 @@ contract NaviToken is StandardToken, Ownable {
 	uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
 	// Freeze duration for TeamAndAdvisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
-	uint256 public START_ICO_TIMESTAMP; // line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
-	int public constant DEFROST_MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
+	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
+	int public constant DEFROST_MONTH_IN_MINUTES = 10; // month in minutes  (1month = 43200 min)
 	int public constant DEFROST_EQUITIES_MONTHS = 4; 
 	int public constant DEFROST_TEAMADVISOR_MONTHS = 8; 
 
@@ -24,7 +24,6 @@ contract NaviToken is StandardToken, Ownable {
 	address[] vIcedBalancesTeamAndAdvisors;
 	mapping (address => uint256) mapIcedBalancesEquities;
 	mapping (address => uint256) mapIcedBalancesTeamAndAdvisors;
-
 
 	// Variable usefull for verifying that the assignedSupply matches that totalSupply
 	uint256 public assignedSupply;
@@ -63,23 +62,19 @@ contract NaviToken is StandardToken, Ownable {
 				assignedSupply += amount ;
 				if (  defrostClass  == 0 ) {
 					// investor account
-					balances[toAddress] += amount;
+					balances[toAddress] = amount;
 				}
 				else if(defrostClass == 1){
 					// equity account: tokens to defrost
 					vIcedBalancesEquities.push(toAddress);
-					if(mapIcedBalancesEquities[toAddress]>0){
-						mapIcedBalancesEquities[toAddress] += amount;
-					}else{
+					if(mapIcedBalancesEquities[toAddress] == 0){
 						mapIcedBalancesEquities[toAddress] = amount;
 					}
 					
 				}else if(defrostClass == 2){
 					// TeamAndAdvisors account: tokens to defrost
 					vIcedBalancesTeamAndAdvisors.push(toAddress);
-					if(mapIcedBalancesTeamAndAdvisors[toAddress]>0){
-						mapIcedBalancesTeamAndAdvisors[toAddress] += amount;
-					}else{
+					if(mapIcedBalancesTeamAndAdvisors[toAddress] == 0){
 						mapIcedBalancesTeamAndAdvisors[toAddress] = amount;
 					}
 				}
@@ -96,37 +91,41 @@ contract NaviToken is StandardToken, Ownable {
 
 	function defrostEquitiesTokens() onlyOwner {
 
-		// !!!tmp require(now>START_ICO_TIMESTAMP);
-		// !!!tmp require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
+		require(now>START_ICO_TIMESTAMP);
+		require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
 		for (uint index=0; index<vIcedBalancesEquities.length; index++) {
 			address currentAddress = vIcedBalancesEquities[index];
 			uint256 amountToDefrost = mapIcedBalancesEquities[currentAddress];
 			if ( amountToDefrost > 0 ) {
 				if(balances[currentAddress] > 0){
 					balances[currentAddress] += amountToDefrost;
+					mapIcedBalancesEquities[currentAddress] -= amountToDefrost;
 				}else{
 					balances[currentAddress] = amountToDefrost;
+					mapIcedBalancesEquities[currentAddress] -= amountToDefrost;
 				}
 			}
 		}
 	}
 
-	function canDefrostTeamAndAdvisors()constant returns (bool){
+	function canDefrostTeamAndAdvisors() constant returns (bool){
 		return elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS;
 	}
 
 	function defrostTeamAndAdvisorsTokens() onlyOwner {
 
-		// !!!tmp require(now > START_ICO_TIMESTAMP);
-		// !!!tmp require(elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS);
+		require(now > START_ICO_TIMESTAMP);
+		require(elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS);
 		for (uint index=0; index<vIcedBalancesTeamAndAdvisors.length; index++) {
 			address currentAddress = vIcedBalancesTeamAndAdvisors[index];
 			uint256 amountToDefrost = mapIcedBalancesTeamAndAdvisors[currentAddress];
 			if ( amountToDefrost > 0 ) {
 				if(balances[currentAddress] > 0){
 					balances[currentAddress] += amountToDefrost;
+					mapIcedBalancesTeamAndAdvisors[currentAddress] -= amountToDefrost;
 				}else{
 					balances[currentAddress] = amountToDefrost;
+					mapIcedBalancesTeamAndAdvisors[currentAddress] -= amountToDefrost;
 				}
 			}
 		}

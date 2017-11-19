@@ -38,8 +38,20 @@ var vAccounts;        // accounts/amounts from txt file
 // init ethereum DRT smart contract ----------------------------------------------------------
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
+//check we can defrost  (blockchain timestamp > )
+var startico = naviContract.getStartIcoTimestamp();
+console.log('------------------->>  startico = ' + startico)
+var rightnow = naviContract.getNow();
+console.log('------------------->>  rightnow = ' + rightnow)
+
+var minElapsed = naviContract.elapsedMonthsFromICOStart();
+console.log('------------------->>  minElapsed From ICO Start = ' + minElapsed)
+var canDefrost = naviContract.canDefrostEquities();
+console.log('------------------->>  canDefrost = ' + canDefrost)
+
+
 // unlock ethereum base account
-//web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
+web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
 console.log('unlockAccount OK')
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
@@ -79,15 +91,7 @@ function timerDefrostFunction() {
             clearInterval(defrostTimerId);
         }*/
 
-        var startico = naviContract.getStartIcoTimestamp();
-        console.log('------------------->>  startico = ' + startico)
-        var rightnow = naviContract.getNow();
-        console.log('------------------->>  rightnow = ' + rightnow)
-
-        var minElapsed = naviContract.elapsedMonthsFromICOStart();
-        console.log('------------------->>  minElapsed From ICO Start = ' + minElapsed)
-        var canDefrost = naviContract.canDefrostEquities();
-        console.log('------------------->>  canDefrost = ' + canDefrost)
+       
         //if(canDefrost){
             tryDefrostEquities();
             clearTimeout(defrostTimerId);
@@ -115,7 +119,7 @@ function tryDefrostEquities() {
 
         // ADVISORS -------------------------------------
         dataparam = naviContract.defrostEquitiesTokens.getData()
-        var gasOk = estimateGas(dataparam) * 20;   			
+        var gasOk = estimateGas(dataparam);   			
 
         naviContract.defrostEquitiesTokens( { gas: gasOk },  function(error, result){
             if (!error) {

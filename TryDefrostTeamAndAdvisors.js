@@ -39,7 +39,7 @@ var vAccounts;        // accounts/amounts from txt file
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
 // unlock ethereum base account
-//web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
+web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
 console.log('unlockAccount OK')
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
@@ -115,7 +115,7 @@ function tryDefrostTeamAndAdvisors() {
 
         // ADVISORS -------------------------------------
         dataparam = naviContract.defrostTeamAndAdvisorsTokens.getData()
-        var gasOk = estimateGas(dataparam) * 20;   			
+        var gasOk = estimateGas(dataparam);   			
 
         naviContract.defrostTeamAndAdvisorsTokens( { gas: gasOk },  function(error, result){
             if (!error) {

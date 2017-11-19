@@ -53,9 +53,7 @@ naviContract.getAddressBalance( web3.eth.accounts[0], function(error, result){
     }
 });
 
-// unlock ethereum base account (unless we are on testrpc)
-//web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
-console.log('unlockAccount OK')
+
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
 // read account/amounts file to assign -------------------------------------------------
@@ -130,6 +128,16 @@ function timerAssignFunction() {
 
 
 function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamounts, vclass, numToSend) {
+
+    // unlock ethereum base account (unless we are on testrpc)
+    console.log("Unlocking coinbase account (if not testrpc)");
+    try {
+    web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword);
+    } catch(e) {
+    console.log(e);
+    return;
+    }
+    console.log('unlockAccount OK')
 
     dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
     //console.log("dataparam = " + dataparam );

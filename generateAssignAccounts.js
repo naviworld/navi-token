@@ -14,10 +14,12 @@ const Web3 = require('web3')
 let web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
 console.log('Web3 OK')
 
+console.log('check num accounts...')
 if(web3.eth.accounts.length <=1){
   console.log("Vous ne pouvez pas lancer ce script parce que vous n'avez pasassez d'accounts. SVP, gérérez des accounts d'abord." )
   return;
 }
+console.log('...num accounts OK')
 
 const GENERATED_ACCOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt';
 const GENERATED_NUMTOKENS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_number_of_tokens.txt'
@@ -52,6 +54,8 @@ for(var a = 0; a < Lacc ;a++){
   var strline;
   if(cnt>0){ // skip first one: the owner 
     
+    console.log('creating account ' + cnt)
+
     amount = randomValueAmount()
     if(cnt<=Lacc3){ 
       // first 3 = TEAM/ADVISORS
