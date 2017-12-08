@@ -58,13 +58,13 @@ for (var i=0; i<lines.length; i++) {
     dict[userAddress] = userAmount;    
     var classInvestor = parseInt(vv[2]);
 
-    console.log(userAddress  + "classInvestor = " + classInvestor )
+    console.log(userAddress  + " - classInvestor = " + classInvestor )
 
     if(classInvestor == 0){ // not iced
         
         totalAssignedOnFile += parseInt(vv[1]);
 
-        naviContract.getAddressAndBalance(userAddress, function(error, result){
+        naviContract.getAddressAndBalance.call(userAddress, function(error, result){
             if (!error) {
 
                 retAddress = result[0];

@@ -132,18 +132,18 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     // unlock ethereum base account (unless we are on testrpc)
     console.log("Unlocking coinbase account (if not testrpc)");
     try {
-    web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword);
+        //web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword);
     } catch(e) {
-    console.log(e);
-    return;
+        console.log(e);
+        return;
     }
     console.log('unlockAccount OK')
 
-    dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
+    /*dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
     //console.log("dataparam = " + dataparam );
     var estimatedGas = web3.eth.estimateGas({data: dataparam})    
     console.log("estimate = " + estimatedGas );
-    estimatedGas = estimatedGas * 20
+    estimatedGas = estimatedGas + 5000;
 
     gasLimit = web3.eth.getBlock("latest").gasLimit
     console.log("gasLimit = " + gasLimit);
@@ -154,9 +154,9 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     }else{
       gasOk=gasLimit;
     }
-    console.log("gasOk = " + gasOk );
+    console.log("gasOk = " + gasOk );*/
 
-    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: gasOk },  function(error, result){
+    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: 99000 },  function(error, result){
             if (!error) {
                 console.log("batchAssignTokens2Arrays OK:" + result);  // OK
             } else {

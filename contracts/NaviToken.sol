@@ -12,18 +12,23 @@ contract NaviToken is StandardToken, Ownable {
 	uint256 public constant decimals = 18;
 
 	uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
-	// Freeze duration for TeamAndAdvisors accounts
+	// Freeze duration for Advisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 	int public constant DEFROST_MONTH_IN_MINUTES = 10; // month in minutes  (1month = 43200 min)
-	int public constant DEFROST_EQUITIES_MONTHS = 4; 
-	int public constant DEFROST_TEAMADVISOR_MONTHS = 8; 
+	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 4; 
+	int public constant DEFROST_ADVISOR_MONTHS = 6; 
+
+	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
 	// Fields that can be changed by functions
-	address[] vIcedBalancesEquities;
-	address[] vIcedBalancesTeamAndAdvisors;
-	mapping (address => uint256) mapIcedBalancesEquities;
-	mapping (address => uint256) mapIcedBalancesTeamAndAdvisors;
+	address[] vIcedBalancesReserveAndTeam;
+	mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
+    mapping (address => uint256) icedBalancesTeamAndAdv_defrosted;
+	
+	address[] vIcedBalancesAdvisors;
+	mapping (address => uint256) mapIcedBalancesAdvisors;
+
 
 	// Variable usefull for verifying that the assignedSupply matches that totalSupply
 	uint256 public assignedSupply;
@@ -33,7 +38,7 @@ contract NaviToken is StandardToken, Ownable {
 
 	function NaviToken() {
 		owner                	= msg.sender;
-		uint256 amountReserve  	= MAX_NUM_NAVITOKENS * 30 / 100;
+		uint256 amountReserve  	= MAX_NUM_NAVITOKENS * 20 / 100;  // 20% allocated and controlled by to NaviAddress
 		balances[owner]  		= amountReserve;
 		totalSupply          	= MAX_NUM_NAVITOKENS;
 		assignedSupply       	= amountReserve;
@@ -57,7 +62,7 @@ contract NaviToken is StandardToken, Ownable {
 
 				address toAddress = _vaddr[index];
 				uint amount = _vamounts[index] * 10 ** decimals;
-				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=equity , 2=advisor 
+				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor 
 			
 				assignedSupply += amount ;
 				if (  defrostClass  == 0 ) {
@@ -65,17 +70,18 @@ contract NaviToken is StandardToken, Ownable {
 					balances[toAddress] = amount;
 				}
 				else if(defrostClass == 1){
-					// equity account: tokens to defrost
-					vIcedBalancesEquities.push(toAddress);
-					if(mapIcedBalancesEquities[toAddress] == 0){
-						mapIcedBalancesEquities[toAddress] = amount;
-					}
-					
+				
+					// Iced account. The balance is not affected here
+                    vIcedBalancesReserveAndTeam.push(toAddress);
+					balances[toAddress] = 0;                   
+                    icedBalancesTeamAndAdv_frosted[toAddress] = amount;
+					icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
+
 				}else if(defrostClass == 2){
-					// TeamAndAdvisors account: tokens to defrost
-					vIcedBalancesTeamAndAdvisors.push(toAddress);
-					if(mapIcedBalancesTeamAndAdvisors[toAddress] == 0){
-						mapIcedBalancesTeamAndAdvisors[toAddress] = amount;
+					// advisors account: tokens to defrost
+					vIcedBalancesAdvisors.push(toAddress);
+					if(mapIcedBalancesAdvisors[toAddress] == 0){
+						mapIcedBalancesAdvisors[toAddress] = amount;
 					}
 				}
 			}
@@ -85,47 +91,53 @@ contract NaviToken is StandardToken, Ownable {
 		return now;
 	}
 
-	function canDefrostEquities()constant returns (bool){
-		return elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS;
+	function canDefrostReserveAndTeam()constant returns (bool){
+		return elapsedMonthsFromICOStart() >= DEFROST_RESERVEANDTEAM_MONTHS;
 	}
 
-	function defrostEquitiesTokens() onlyOwner {
+	function defrostReserveAndTeamTokens() onlyOwner {
 
 		require(now>START_ICO_TIMESTAMP);
-		require(elapsedMonthsFromICOStart() >= DEFROST_EQUITIES_MONTHS);
-		for (uint index=0; index<vIcedBalancesEquities.length; index++) {
-			address currentAddress = vIcedBalancesEquities[index];
-			uint256 amountToDefrost = mapIcedBalancesEquities[currentAddress];
-			if ( amountToDefrost > 0 ) {
-				if(balances[currentAddress] > 0){
-					balances[currentAddress] += amountToDefrost;
-					mapIcedBalancesEquities[currentAddress] -= amountToDefrost;
-				}else{
-					balances[currentAddress] = amountToDefrost;
-					mapIcedBalancesEquities[currentAddress] -= amountToDefrost;
-				}
-			}
-		}
+
+		int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_RESERVEANDTEAM_MONTHS;
+		require(monthsElapsedTeamAndAdv>0);
+		uint monthsIndex = uint(monthsElapsedTeamAndAdv);
+		require(monthsIndex<DEFROST_FACTOR_TEAMANDADV);
+
+		// Looping into the iced accounts
+        for (uint index = 0; index < vIcedBalancesReserveAndTeam.length; index++) {
+
+			address currentAddress = vIcedBalancesReserveAndTeam[index];
+            uint256 amountTotal = icedBalancesTeamAndAdv_frosted[currentAddress] + icedBalancesTeamAndAdv_defrosted[currentAddress];
+            uint256 targetDeFrosted = monthsIndex * amountTotal / DEFROST_FACTOR_TEAMANDADV;
+            uint256 amountToRelease = targetDeFrosted - icedBalancesTeamAndAdv_defrosted[currentAddress];
+           
+		    if (amountToRelease > 0) {
+                icedBalancesTeamAndAdv_frosted[currentAddress] = icedBalancesTeamAndAdv_frosted[currentAddress] - amountToRelease;
+                icedBalancesTeamAndAdv_defrosted[currentAddress] = icedBalancesTeamAndAdv_defrosted[currentAddress] + amountToRelease;
+                balances[currentAddress] = balances[currentAddress] + amountToRelease;
+            }
+        }
 	}
 
-	function canDefrostTeamAndAdvisors() constant returns (bool){
-		return elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS;
+	function canDefrostAdvisors() constant returns (bool){
+		return elapsedMonthsFromICOStart() >= DEFROST_ADVISOR_MONTHS;
 	}
 
-	function defrostTeamAndAdvisorsTokens() onlyOwner {
+	function defrostAdvisorsTokens() onlyOwner {
 
 		require(now > START_ICO_TIMESTAMP);
-		require(elapsedMonthsFromICOStart() >= DEFROST_TEAMADVISOR_MONTHS);
-		for (uint index=0; index<vIcedBalancesTeamAndAdvisors.length; index++) {
-			address currentAddress = vIcedBalancesTeamAndAdvisors[index];
-			uint256 amountToDefrost = mapIcedBalancesTeamAndAdvisors[currentAddress];
+		require(elapsedMonthsFromICOStart() >= DEFROST_ADVISOR_MONTHS);
+		for (uint index=0; index<vIcedBalancesAdvisors.length; index++) {
+			address currentAddress = vIcedBalancesAdvisors[index];
+			uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
 			if ( amountToDefrost > 0 ) {
 				if(balances[currentAddress] > 0){
 					balances[currentAddress] += amountToDefrost;
-					mapIcedBalancesTeamAndAdvisors[currentAddress] -= amountToDefrost;
+					mapIcedBalancesAdvisors[currentAddress] -= amountToDefrost;
 				}else{
 					balances[currentAddress] = amountToDefrost;
-					mapIcedBalancesTeamAndAdvisors[currentAddress] -= amountToDefrost;
+					mapIcedBalancesAdvisors[currentAddress] -= amountToDefrost;
 				}
 			}
 		}
@@ -157,23 +169,23 @@ contract NaviToken is StandardToken, Ownable {
 			_amount = balances[addr];
 	}
 
-	/*function getIcedAddressesEquities() constant returns (address[] vaddr)  {
-			vaddr = vIcedBalancesEquities;
+	/*function getIcedAddressesReserveAndTeam() constant returns (address[] vaddr)  {
+			vaddr = vIcedBalancesReserveAndTeam;
 	}
 	
-	function getIcedAddressesTeamAndAdvisors() constant returns (address[] vaddr)  {
-			vaddr = vIcedBalancesTeamAndAdvisors;
+	function getIcedAddressesAdvisors() constant returns (address[] vaddr)  {
+			vaddr = vIcedBalancesAdvisors;
 	}*/
 
-	function isEquityIced(address addr) constant returns (bool)  {
-			uint256 amountToDefrost = mapIcedBalancesEquities[addr];
+	/*function isReserveAndTeamIced(address addr) constant returns (bool)  {
+			uint256 amountToDefrost = mapIcedBalancesReserveAndTeam[addr];
 			return amountToDefrost > 0;
 	}
 
 	function isAdvisorIced(address addr) constant returns (bool)  {
-			uint256 amountToDefrost = mapIcedBalancesTeamAndAdvisors[addr];
+			uint256 amountToDefrost = mapIcedBalancesAdvisors[addr];
 			return amountToDefrost > 0;
-	}
+	}*/
 
 
 	function killContract() onlyOwner {
