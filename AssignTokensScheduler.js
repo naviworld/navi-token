@@ -156,11 +156,11 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     }
     console.log("gasOk = " + gasOk );*/
 
-    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: 99000 },  function(error, result){
+    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: 999000 },  function(error, result){
             if (!error) {
-                console.log("batchAssignTokens2Arrays OK:" + result);  // OK
+                console.log("batchAssignTokens OK:" + result);  // OK
             } else {
-                console.log("Error: " + error); 
+                console.log(" batchAssignTokens error: " + error); 
             }
     });
 }

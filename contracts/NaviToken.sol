@@ -15,11 +15,11 @@ contract NaviToken is StandardToken, Ownable {
 	// Freeze duration for Advisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
-	int public constant DEFROST_MONTH_IN_MINUTES = 10; // month in minutes  (1month = 43200 min)
-	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 4; 
-	int public constant DEFROST_ADVISOR_MONTHS = 6; 
+	int public constant DEFROST_MONTH_IN_MINUTES = 1; // month in minutes  (1month = 43200 min)
+	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 3; 
+	int public constant DEFROST_ADVISOR_MONTHS = 5; 
 
-	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
+	uint public constant DEFROST_FACTOR_TEAMANDADV = 10;
 
 	// Fields that can be changed by functions
 	address[] vIcedBalancesReserveAndTeam;
@@ -45,7 +45,7 @@ contract NaviToken is StandardToken, Ownable {
 
 		// for test only: set START_ICO to contract creation timestamp
 		// +600 => add 10 minutes
-		START_ICO_TIMESTAMP = now + 600; // line to remove before the main net deployment 
+		START_ICO_TIMESTAMP = now; // line to remove before the main net deployment 
 	}
 
 	/**
@@ -91,6 +91,18 @@ contract NaviToken is StandardToken, Ownable {
 		return now;
 	}
 
+	function getReserveAndTeamDefrostFactor()constant returns (uint){
+		return DEFROST_FACTOR_TEAMANDADV;
+	}
+	
+	function lagReserveAndTeamDefrost()constant returns (int){
+		return DEFROST_RESERVEANDTEAM_MONTHS;
+	}
+
+	function lagAdvisorsDefrost()constant returns (int){
+		return DEFROST_ADVISOR_MONTHS;
+	}
+
 	function canDefrostReserveAndTeam()constant returns (bool){
 		return elapsedMonthsFromICOStart() >= DEFROST_RESERVEANDTEAM_MONTHS;
 	}
@@ -102,7 +114,7 @@ contract NaviToken is StandardToken, Ownable {
 		int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_RESERVEANDTEAM_MONTHS;
 		require(monthsElapsedTeamAndAdv>0);
 		uint monthsIndex = uint(monthsElapsedTeamAndAdv);
-		require(monthsIndex<DEFROST_FACTOR_TEAMANDADV);
+		require(monthsIndex<=DEFROST_FACTOR_TEAMANDADV);
 
 		// Looping into the iced accounts
         for (uint index = 0; index < vIcedBalancesReserveAndTeam.length; index++) {

@@ -38,36 +38,61 @@ var vAccounts;        // accounts/amounts from txt file
 // init ethereum DRT smart contract ----------------------------------------------------------
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
-// unlock ethereum base account
-web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
-console.log('unlockAccount OK')
-web3.eth.defaultAccount = web3.eth.accounts[0];
+//check we can defrost  (blockchain timestamp > )
+var startico = naviContract.getStartIcoTimestamp();
+console.log('------------------->>  startico = ' + startico)
+var rightnow = naviContract.getNow();
+console.log('------------------->>  rightnow = ' + rightnow)
 
-// read account/amounts file to assign -------------------------------------------------
-vAccounts  = require('fs').readFileSync(ACCOUNTSAMOUNTS_FILEPATH).toString().split('\n')
-console.log('NUM ACCOUNTS = ' + vAccounts.length)
+var monthsElapsed = naviContract.elapsedMonthsFromICOStart();
+console.log('------------------->>  elapsed months from ICO Start = ' + monthsElapsed)
+var canDefrost = naviContract.canDefrostReserveAndTeam();
+console.log('------------------->>  canDefrost = ' + canDefrost)
+
+var lagReserveAndTeamDefrost = naviContract.lagReserveAndTeamDefrost();
+console.log('------------------->>  lagReserveAndTeamDefrost = ' + lagReserveAndTeamDefrost)
+var lagAdvisorsDefrost = naviContract.lagAdvisorsDefrost();
+console.log('------------------->>  lagAdvisorsDefrost = ' + lagAdvisorsDefrost)
+
+var reserveAndTeamDefrostFactor = naviContract.getReserveAndTeamDefrostFactor();
+console.log('------------------->>  reserveAndTeamDefrostFactor = ' + reserveAndTeamDefrostFactor)
 
 
-var vaddr = []
-var vamounts = []
-var vclasses = []
-for(i=0;i<vAccounts.length;i++){
-    var vv = vAccounts[i].split(",");
-    if(vv.length == 3){
-        vaddr.push(vv[0]);
-        vamounts.push(parseInt(vv[1]));
-        vclasses.push(parseInt(vv[2]));
+if(canDefrost == true)
+{
+
+    // unlock ethereum base account
+    //web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
+    console.log('unlockAccount OK')
+    web3.eth.defaultAccount = web3.eth.accounts[0];
+
+    // read account/amounts file to assign -------------------------------------------------
+    vAccounts  = require('fs').readFileSync(ACCOUNTSAMOUNTS_FILEPATH).toString().split('\n')
+    console.log('NUM ACCOUNTS = ' + vAccounts.length)
+
+
+    var vaddr = []
+    var vamounts = []
+    var vclasses = []
+    for(i=0;i<vAccounts.length;i++){
+        var vv = vAccounts[i].split(",");
+        if(vv.length == 3){
+            vaddr.push(vv[0]);
+            vamounts.push(parseInt(vv[1]));
+            vclasses.push(parseInt(vv[2]));
+        }
+        else if(vAccounts[i].length>0){
+            console.log('Fatal error: item size mismatch  !!!!!!!!!!!!!!!!!!!!!!! ' + vAccounts[i])
+        }
     }
-    else if(vAccounts[i].length>0){
-        console.log('Fatal error: item size mismatch  !!!!!!!!!!!!!!!!!!!!!!! ' + vAccounts[i])
-    }
+
+    console.log('_____________________________________________________________________________')
+    // launch assign timer  ----------------------------------------------------------------
+    var defrostIntervalSec = parseInt(4) 
+    console.log('intervalSec = ' + defrostIntervalSec)
+    defrostTimerId = setInterval(timerDefrostFunction, defrostIntervalSec * 1000);
 }
 
-console.log('_____________________________________________________________________________')
-// launch assign timer  ----------------------------------------------------------------
-var defrostIntervalSec = parseInt(30) 
-console.log('intervalSec = ' + defrostIntervalSec)
-defrostTimerId = setInterval(timerDefrostFunction, defrostIntervalSec * 1000);
 
 var cntTimer = parseInt(0)
 function timerDefrostFunction() {
@@ -79,20 +104,12 @@ function timerDefrostFunction() {
             clearInterval(defrostTimerId);
         }*/
 
-        var startico = naviContract.getStartIcoTimestamp();
-        console.log('------------------->>  startico = ' + startico)
-        var rightnow = naviContract.getNow();
-        console.log('------------------->>  rightnow = ' + rightnow)
-
-        var minElapsed = naviContract.elapsedMonthsFromICOStart();
-        console.log('------------------->>  minElapsed From ICO Start = ' + minElapsed)
-        var canDefrost = naviContract.canDefrostTeamAndAdvisors();
-        console.log('------------------->>  canDefrost = ' + canDefrost)
+       
         //if(canDefrost){
-            tryDefrostTeamAndAdvisors();
+            tryDefrostReserveAndTeam();
             clearTimeout(defrostTimerId);
         //}else{
-         //   console.log('cannot defrost team and advisors yet...')
+        //    console.log('cannot defrost equities yet...')
         //}
         cntTimer++;
         console.log('.......................................................................')
@@ -111,18 +128,19 @@ function estimateGas(dataparam){
 	return gasOk;
 }
 
-function tryDefrostTeamAndAdvisors() {
+function tryDefrostReserveAndTeam() {
 
-        // ADVISORS -------------------------------------
-        dataparam = naviContract.defrostTeamAndAdvisorsTokens.getData()
-        var gasOk = estimateGas(dataparam);   			
+        console.log("into tryDefrostReserveAndTeam()");
+        // Reserve And Team -------------------------------------
+        dataparam = naviContract.defrostReserveAndTeamTokens.getData()
+        //var gasOk = estimateGas(dataparam);   			
 
-        naviContract.defrostTeamAndAdvisorsTokens( { gas: gasOk },  function(error, result){
+        naviContract.defrostReserveAndTeamTokens( { gas: 999000 },  function(error, result){
             if (!error) {
-                console.log("defrostTeamAndAdvisorsTokens OK:" + result);  // OK
+                console.log("defrostReserveAndTeamTokens OK:" + result);  // OK
                 waitForBlock(result, false);
             } else {
-                console.log("Error: calling defrostTeamAndAdvisorsTokens => " + error); 
+                console.log("Error: calling defrostReserveAndTeamTokens => " + error); 
             }
         });   
 }
@@ -142,7 +160,7 @@ async function waitForBlock(txhash, isOwner) {
     if (receipt && receipt.blockNumber) {
         //console.log("Your defrostToken call has been mined in block " + receipt.blockNumber);
         //console.log("Note that it might take 30 - 90 seconds for the block to propagate before it's visible in etherscan.io");
-        checkDefrostedTeamAndAdvisors();
+        checkDefrostedReserveAndTeam();
         //checkDefrostedAdvisors();
         waitdefrostTimerId = setInterval(timerWaitDefrostFunction, waitdefrostIntervalSec * 1000);
       	break;
@@ -156,15 +174,15 @@ async function waitForBlock(txhash, isOwner) {
 var vDefrostItems = new Object();
 var cntToDefrost =0;
 var cntDefrosted =0;
-function checkDefrostedTeamAndAdvisors() {
-    
+function checkDefrostedReserveAndTeam() {
+
 	var blockTimestamp = naviContract.getBlockTimestamp();
     var defrostedLogFile = DEFROSTED_LOG_ROOT + 'defrosted_' + blockTimestamp + '.txt'
     fs.appendFileSync(defrostedLogFile, blockTimestamp + '\n');
 
     for(i=0;i<vaddr.length;i++){
         var classInvestor = vclasses[i];
-        if(classInvestor === 2){ // TeamAndAdvisors
+        if(classInvestor === 1){ // equity
             var addr = vaddr[i];
             cntToDefrost++;
             naviContract.getAddressAndBalance(addr, function(error, result){
@@ -174,7 +192,7 @@ function checkDefrostedTeamAndAdvisors() {
                     amount = result[1];
                     vDefrostItems[icedaddr] = amount;
                     cntDefrosted++;
-                    console.log('TEAMorADVISOR => ' + icedaddr + " => amount defrosted: " + amount);     
+                    console.log('EQUITY => ' + icedaddr + " => amount defrosted: " + amount);     
 		            var strlog = icedaddr + ";balance=" + amount;
 		            fs.appendFileSync(defrostedLogFile, strlog + '\n');
                 }
@@ -194,7 +212,7 @@ function timerWaitDefrostFunction() {
         clearTimeout(waitdefrostTimerId);
         console.log('Defrost END  Defrost END  Defrost END  Defrost END  --------------------------')
 
-        checkDefrostedTeamAndAdvisorsTokenAmounts();
+        checkDefrostedEquitiesTokenAmounts();
 
     }else{
         console.log('timerWaitDefrostFunction scheduler call ... WAITING for defrost END')
@@ -202,21 +220,21 @@ function timerWaitDefrostFunction() {
 }    
 
 var Decimals = 1000000000000000000
-function checkDefrostedTeamAndAdvisorsTokenAmounts() {
+function checkDefrostedEquitiesTokenAmounts() {
         
         for(i=0;i<vaddr.length;i++){
             var classInvestor = vclasses[i];
-            if(classInvestor === 2){ // TeamAndAdvisors
+            if(classInvestor === 1){ // equity
                 var icedaddr = vaddr[i];
-                var amountToDefrost = vamounts[i] ;
+                var amountToDefrost = vamounts[i] * (monthsElapsed-lagReserveAndTeamDefrost) / 10;
                 var amountDefrosted = Math.round(vDefrostItems[icedaddr] /  Decimals)
-                if (amountDefrosted ==  amountToDefrost) 
+                if (Math.abs(amountDefrosted -  amountToDefrost) < 1) 
                 {
-                    console.log('TEAMorADVISOR OK => ' + icedaddr + " => amount to defrost: " + amountToDefrost + " => amount defrosted:" + amountDefrosted);     
+                    console.log('EQUITY OK => ' + icedaddr + " => amount to defrost: " + amountToDefrost + " => amount defrosted:" + amountDefrosted);     
                 }
                 else
                 {
-                    console.log('TEAMorADVISOR MISMATCH ERROR !!!!!!!!!!! => ' + icedaddr + " => amount to defrost: " + amountToDefrost + " => amount defrosted:" + amountDefrosted);     
+                    console.log('EQUITY MISMATCH ERROR !!!!!!!!!!! => ' + icedaddr + " => amount to defrost: " + amountToDefrost + " => amount defrosted:" + amountDefrosted);     
                 }
             }
         }

@@ -63,8 +63,8 @@ for (var i=0; i<lines.length; i++) {
     if(classInvestor == 0){ // not iced
         
         totalAssignedOnFile += parseInt(vv[1]);
-
         naviContract.getAddressAndBalance.call(userAddress, function(error, result){
+
             if (!error) {
 
                 retAddress = result[0];
