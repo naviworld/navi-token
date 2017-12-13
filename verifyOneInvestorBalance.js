@@ -28,10 +28,11 @@ console.log('unlockAccount OK')
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
 
-//var addressToRetrieveClass2 = '0xf17f52151ebef6c7334fad080c5704d77216b732';
+var addressToRetrieveClass2 = '0xf17f52151ebef6c7334fad080c5704d77216b732';
 var addressToRetrieveClass0 = '0x0f4f2ac550a1b4e2280d04c21cea7ebd822934b5';
+var addressToRetrieveClass1 = '0x0d1d4e623d10f9fba5db95830f7d3839406c6af2';
 
-naviContract.getAddressAndBalance.call(addressToRetrieveClass0, function(error, result){
+naviContract.getAddressAndBalance.call(addressToRetrieveClass1, function(error, result){
     if (!error) {
 
         retAddress = result[0];

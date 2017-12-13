@@ -139,11 +139,12 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     }
     console.log('unlockAccount OK')
 
-    /*dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
+    dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
     //console.log("dataparam = " + dataparam );
-    var estimatedGas = web3.eth.estimateGas({data: dataparam})    
+    console.log("estimating gas... ");
+    var estimatedGas = web3.eth.estimateGas({data: dataparam, gas: 155000})    
     console.log("estimate = " + estimatedGas );
-    estimatedGas = estimatedGas + 5000;
+    estimatedGas = estimatedGas * chunkSize + 15000;
 
     gasLimit = web3.eth.getBlock("latest").gasLimit
     console.log("gasLimit = " + gasLimit);
@@ -154,9 +155,9 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     }else{
       gasOk=gasLimit;
     }
-    console.log("gasOk = " + gasOk );*/
+    console.log("gasOk = " + gasOk );
 
-    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: 999000 },  function(error, result){
+    naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: estimatedGas },  function(error, result){
             if (!error) {
                 console.log("batchAssignTokens OK:" + result);  // OK
             } else {
