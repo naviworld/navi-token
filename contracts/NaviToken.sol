@@ -15,11 +15,11 @@ contract NaviToken is StandardToken, Ownable {
 	// Freeze duration for Advisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
-	int public constant DEFROST_MONTH_IN_MINUTES = 1; // month in minutes  (1month = 43200 min)
-	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 3; 
-	int public constant DEFROST_ADVISOR_MONTHS = 5; 
+	int public constant DEFROST_MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
+	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 6; 
+	int public constant DEFROST_ADVISOR_MONTHS = 6; 
 
-	uint public constant DEFROST_FACTOR_TEAMANDADV = 10;
+	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
 	// Fields that can be changed by functions
 	address[] vIcedBalancesReserveAndTeam;
@@ -140,7 +140,7 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	function canDefrostAdvisors() constant returns (bool){
-		return elapsedMonthsFromICOStart() >= DEFROST_ADVISOR_MONTHS;
+		return elapsedMonthsFromICOStart() == DEFROST_ADVISOR_MONTHS;
 	}
 
 	function defrostAdvisorsTokens() onlyOwner {
