@@ -38,7 +38,7 @@ contract NaviToken is StandardToken, Ownable {
 
 	function NaviToken() {
 		owner                	= msg.sender;
-		uint256 amountReserve  	= MAX_NUM_NAVITOKENS * 20 / 100;  // 20% allocated and controlled by to NaviAddress
+		uint256 amountReserve  	= SafeMath.div(SafeMath.mul(MAX_NUM_NAVITOKENS, 20) , 100);  // 20% allocated and controlled by to NaviAddress
 		balances[owner]  		= amountReserve;
 		totalSupply          	= MAX_NUM_NAVITOKENS;
 		assignedSupply       	= amountReserve;
@@ -61,10 +61,10 @@ contract NaviToken is StandardToken, Ownable {
 			for (uint index=0; index<_vaddr.length; index++) {
 
 				address toAddress = _vaddr[index];
-				uint amount = _vamounts[index] * 10 ** decimals;
+				uint amount = SafeMath.mul(_vamounts[index], 10 ** decimals);
 				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor 
 			
-				assignedSupply += amount ;
+				assignedSupply = SafeMath.add(assignedSupply, amount);
 				if (  defrostClass  == 0 ) {
 					// investor account
 					balances[toAddress] = amount;
@@ -110,7 +110,7 @@ contract NaviToken is StandardToken, Ownable {
 	function canDefrostReserveAndTeam()constant returns (bool){
 		int numMonths = elapsedMonthsFromICOStart();
 		return  numMonths >= DEFROST_RESERVEANDTEAM_MONTHS && 
-							uint(numMonths) <= (uint(DEFROST_RESERVEANDTEAM_MONTHS) + DEFROST_FACTOR_TEAMANDADV);
+							uint(numMonths) <= SafeMath.add(uint(DEFROST_RESERVEANDTEAM_MONTHS),  DEFROST_FACTOR_TEAMANDADV);
 	}
 
 	function defrostReserveAndTeamTokens() onlyOwner {
@@ -127,14 +127,14 @@ contract NaviToken is StandardToken, Ownable {
         for (uint index = 0; index < vIcedBalancesReserveAndTeam.length; index++) {
 
 			address currentAddress = vIcedBalancesReserveAndTeam[index];
-            uint256 amountTotal = icedBalancesTeamAndAdv_frosted[currentAddress] + icedBalancesTeamAndAdv_defrosted[currentAddress];
-            uint256 targetDeFrosted = monthsIndex * amountTotal / DEFROST_FACTOR_TEAMANDADV;
-            uint256 amountToRelease = targetDeFrosted - icedBalancesTeamAndAdv_defrosted[currentAddress];
+            uint256 amountTotal = SafeMath.add(icedBalancesTeamAndAdv_frosted[currentAddress], icedBalancesTeamAndAdv_defrosted[currentAddress]);
+            uint256 targetDeFrosted = SafeMath.div(SafeMath.mul(monthsIndex, amountTotal), DEFROST_FACTOR_TEAMANDADV);
+            uint256 amountToRelease = SafeMath.sub(targetDeFrosted, icedBalancesTeamAndAdv_defrosted[currentAddress]);
            
 		    if (amountToRelease > 0) {
-                icedBalancesTeamAndAdv_frosted[currentAddress] = icedBalancesTeamAndAdv_frosted[currentAddress] - amountToRelease;
-                icedBalancesTeamAndAdv_defrosted[currentAddress] = icedBalancesTeamAndAdv_defrosted[currentAddress] + amountToRelease;
-                balances[currentAddress] = balances[currentAddress] + amountToRelease;
+                icedBalancesTeamAndAdv_frosted[currentAddress] = SafeMath.sub(icedBalancesTeamAndAdv_frosted[currentAddress], amountToRelease);
+                icedBalancesTeamAndAdv_defrosted[currentAddress] = SafeMath.add(icedBalancesTeamAndAdv_defrosted[currentAddress], amountToRelease);
+                balances[currentAddress] = SafeMath.add(balances[currentAddress], amountToRelease);
             }
         }
 	}
@@ -154,11 +154,11 @@ contract NaviToken is StandardToken, Ownable {
 			uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
 			if ( amountToDefrost > 0 ) {
 				if(balances[currentAddress] > 0){
-					balances[currentAddress] += amountToDefrost;
-					mapIcedBalancesAdvisors[currentAddress] -= amountToDefrost;
+					balances[currentAddress] = SafeMath.add(balances[currentAddress], amountToDefrost);
+					mapIcedBalancesAdvisors[currentAddress] = SafeMath.sub(mapIcedBalancesAdvisors[currentAddress], amountToDefrost);
 				}else{
 					balances[currentAddress] = amountToDefrost;
-					mapIcedBalancesAdvisors[currentAddress] -= amountToDefrost;
+					mapIcedBalancesAdvisors[currentAddress] = SafeMath.sub(mapIcedBalancesAdvisors[currentAddress], amountToDefrost);
 				}
 			}
 		}

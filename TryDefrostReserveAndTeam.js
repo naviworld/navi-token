@@ -203,7 +203,7 @@ function checkDefrosted_RESERVEandTEAM_TokenAmounts() {
             var classInvestor = vclasses[i];
             if(classInvestor === 1){ // equity
                 var icedaddr = vaddr[i];
-                var amountToDefrost = vamounts[i] * (monthsElapsed-lagReserveAndTeamDefrost) / 10;
+                var amountToDefrost = vamounts[i] * (monthsElapsed-lagReserveAndTeamDefrost) / reserveAndTeamDefrostFactor;
                 var amountDefrosted = Math.round(vDefrostItems[icedaddr] /  Decimals)
                 if (Math.abs(amountDefrosted -  amountToDefrost) < 1) 
                 {
