@@ -186,10 +186,9 @@ contract NaviToken is StandardToken, Ownable {
 			_amount = balances[addr];
 	}
 
-	function setStopDefrost() onlyOwner constant {
+	function setStopDefrost() onlyOwner {
 		stopDefrost = true;
 	}
-
 
 	function killContract() onlyOwner {
 		selfdestruct(owner);
