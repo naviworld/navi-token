@@ -22,11 +22,11 @@ contract NaviToken is StandardToken, Ownable {
 	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
 	// Fields that can be changed by functions
-	address[] vIcedBalancesReserveAndTeam;
+	address[] icedBalancesReserveAndTeam;
 	mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
-    mapping (address => uint256) icedBalancesTeamAndAdv_defrosted;
+	mapping (address => uint256) icedBalancesTeamAndAdv_defrosted;
 
-	address[] vIcedBalancesAdvisors;
+	address[] icedBalancesAdvisors;
 	mapping (address => uint256) mapIcedBalancesAdvisors;
 
 
@@ -49,65 +49,60 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	/**
-   * @dev Transfer tokens in batches (of adresses)
-   * @param _vaddr address The address which you want to send tokens from
-   * @param _vamounts address The address which you want to transfer to
-   */
-  function batchAssignTokens(address[] _vaddr, uint[] _vamounts, uint[] _vDefrostClass ) onlyOwner {
+    * @dev Transfer tokens in batches (of adresses)
+    * @param _addr address The address which you want to send tokens from
+    * @param _amounts address The address which you want to transfer to
+    */
+	function batchAssignTokens(address[] _addr, uint[] _amounts, uint[] _defrostClass ) onlyOwner {
+		require (batchAssignStopped == false);
+		require (_addr.length == _amounts.length && _addr.length == _defrostClass.length);
+		//Looping into input arrays to assign target amount to each given address
+		for (uint index = 0; index < _addr.length; index++) {
+			address toAddress = _addr[index];
+			uint amount = SafeMath.mul(_amounts[index], 10 ** decimals);
+			uint defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
 
-			require ( batchAssignStopped == false );
-			require ( _vaddr.length == _vamounts.length && _vaddr.length == _vDefrostClass.length);
-			//Looping into input arrays to assign target amount to each given address
-			for (uint index=0; index<_vaddr.length; index++) {
-
-				address toAddress = _vaddr[index];
-				uint amount = SafeMath.mul(_vamounts[index], 10 ** decimals);
-				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
-
-				assignedSupply = SafeMath.add(assignedSupply, amount);
-				if (  defrostClass  == 0 ) {
-					// investor account
-					balances[toAddress] = amount;
-				}
-				else if(defrostClass == 1){
-
-					// Iced account. The balance is not affected here
-                    vIcedBalancesReserveAndTeam.push(toAddress);
-					balances[toAddress] = 0;
-                    icedBalancesTeamAndAdv_frosted[toAddress] = amount;
-					icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
-
-				}else if(defrostClass == 2){
-					// advisors account: tokens to defrost
-					vIcedBalancesAdvisors.push(toAddress);
-					if(mapIcedBalancesAdvisors[toAddress] == 0){
-						mapIcedBalancesAdvisors[toAddress] = amount;
-					}
+			assignedSupply = SafeMath.add(assignedSupply, amount);
+			if (defrostClass == 0) {
+				// investor account
+				balances[toAddress] = amount;
+			} else if (defrostClass == 1) {
+				// Iced account. The balance is not affected here
+	        	icedBalancesReserveAndTeam.push(toAddress);
+				balances[toAddress] = 0;
+	        	icedBalancesTeamAndAdv_frosted[toAddress] = amount;
+				icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
+			} else if (defrostClass == 2) {
+				// advisors account: tokens to defrost
+				icedBalancesAdvisors.push(toAddress);
+				if (mapIcedBalancesAdvisors[toAddress] == 0) {
+					mapIcedBalancesAdvisors[toAddress] = amount;
 				}
 			}
+		}
 	}
 
-	function getBlockTimestamp() constant returns (uint256){
+	function getBlockTimestamp() constant returns (uint256) {
 		return now;
 	}
 
 	function elapsedMonthsFromICOStart() constant returns (int elapsed) {
-		elapsed = (int(now-START_ICO_TIMESTAMP)/60)/DEFROST_MONTH_IN_MINUTES;
+		elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / DEFROST_MONTH_IN_MINUTES;
 	}
 
-	function getReserveAndTeamDefrostFactor()constant returns (uint){
+	function getReserveAndTeamDefrostFactor() constant returns (uint) {
 		return DEFROST_FACTOR_TEAMANDADV;
 	}
 
-	function lagReserveAndTeamDefrost()constant returns (int){
+	function lagReserveAndTeamDefrost() constant returns (int) {
 		return DEFROST_RESERVEANDTEAM_MONTHS;
 	}
 
-	function lagAdvisorsDefrost()constant returns (int){
+	function lagAdvisorsDefrost() constant returns (int) {
 		return DEFROST_ADVISOR_MONTHS;
 	}
 
-	function canDefrostReserveAndTeam()constant returns (bool){
+	function canDefrostReserveAndTeam() constant returns (bool) {
 		int numMonths = elapsedMonthsFromICOStart();
 		return  numMonths >= DEFROST_RESERVEANDTEAM_MONTHS &&
 							uint(numMonths) <= SafeMath.add(uint(DEFROST_RESERVEANDTEAM_MONTHS),  DEFROST_FACTOR_TEAMANDADV);
@@ -119,27 +114,27 @@ contract NaviToken is StandardToken, Ownable {
 		require(stopDefrost == false);
 
 		int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_RESERVEANDTEAM_MONTHS;
-		require(monthsElapsedTeamAndAdv>0);
+		require(monthsElapsedTeamAndAdv > 0);
 		uint monthsIndex = uint(monthsElapsedTeamAndAdv);
-		require(monthsIndex<=DEFROST_FACTOR_TEAMANDADV);
+		require(monthsIndex <= DEFROST_FACTOR_TEAMANDADV);
 
 		// Looping into the iced accounts
-        for (uint index = 0; index < vIcedBalancesReserveAndTeam.length; index++) {
+    	for (uint index = 0; index < icedBalancesReserveAndTeam.length; index++) {
 
-			address currentAddress = vIcedBalancesReserveAndTeam[index];
-            uint256 amountTotal = SafeMath.add(icedBalancesTeamAndAdv_frosted[currentAddress], icedBalancesTeamAndAdv_defrosted[currentAddress]);
-            uint256 targetDeFrosted = SafeMath.div(SafeMath.mul(monthsIndex, amountTotal), DEFROST_FACTOR_TEAMANDADV);
-            uint256 amountToRelease = SafeMath.sub(targetDeFrosted, icedBalancesTeamAndAdv_defrosted[currentAddress]);
+			address currentAddress = icedBalancesReserveAndTeam[index];
+	    	uint256 amountTotal = SafeMath.add(icedBalancesTeamAndAdv_frosted[currentAddress], icedBalancesTeamAndAdv_defrosted[currentAddress]);
+	    	uint256 targetDeFrosted = SafeMath.div(SafeMath.mul(monthsIndex, amountTotal), DEFROST_FACTOR_TEAMANDADV);
+	    	uint256 amountToRelease = SafeMath.sub(targetDeFrosted, icedBalancesTeamAndAdv_defrosted[currentAddress]);
 
-		    if (amountToRelease > 0) {
-                icedBalancesTeamAndAdv_frosted[currentAddress] = SafeMath.sub(icedBalancesTeamAndAdv_frosted[currentAddress], amountToRelease);
-                icedBalancesTeamAndAdv_defrosted[currentAddress] = SafeMath.add(icedBalancesTeamAndAdv_defrosted[currentAddress], amountToRelease);
-                balances[currentAddress] = SafeMath.add(balances[currentAddress], amountToRelease);
-            }
-        }
+			if (amountToRelease > 0) {
+	      		icedBalancesTeamAndAdv_frosted[currentAddress] = SafeMath.sub(icedBalancesTeamAndAdv_frosted[currentAddress], amountToRelease);
+	        	icedBalancesTeamAndAdv_defrosted[currentAddress] = SafeMath.add(icedBalancesTeamAndAdv_defrosted[currentAddress], amountToRelease);
+	      		balances[currentAddress] = SafeMath.add(balances[currentAddress], amountToRelease);
+	      	}
+    	}
 	}
 
-	function canDefrostAdvisors() constant returns (bool){
+	function canDefrostAdvisors() constant returns (bool) {
 		return elapsedMonthsFromICOStart() == DEFROST_ADVISOR_MONTHS;
 	}
 
@@ -149,14 +144,14 @@ contract NaviToken is StandardToken, Ownable {
 		require(stopDefrost == false);
 
 		require(elapsedMonthsFromICOStart() >= DEFROST_ADVISOR_MONTHS);
-		for (uint index=0; index<vIcedBalancesAdvisors.length; index++) {
-			address currentAddress = vIcedBalancesAdvisors[index];
+		for (uint index = 0; index < icedBalancesAdvisors.length; index++) {
+			address currentAddress = icedBalancesAdvisors[index];
 			uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
-			if ( amountToDefrost > 0 ) {
-				if(balances[currentAddress] > 0){
+			if (amountToDefrost > 0) {
+				if (balances[currentAddress] > 0) {
 					balances[currentAddress] = SafeMath.add(balances[currentAddress], amountToDefrost);
 					mapIcedBalancesAdvisors[currentAddress] = SafeMath.sub(mapIcedBalancesAdvisors[currentAddress], amountToDefrost);
-				}else{
+				} else {
 					balances[currentAddress] = amountToDefrost;
 					mapIcedBalancesAdvisors[currentAddress] = SafeMath.sub(mapIcedBalancesAdvisors[currentAddress], amountToDefrost);
 				}
@@ -173,17 +168,17 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	function stopBatchAssign() onlyOwner {
-			require ( batchAssignStopped == false);
-			batchAssignStopped = true;
+		require(batchAssignStopped == false);
+		batchAssignStopped = true;
 	}
 
-	function getAddressBalance(address addr) constant returns (uint256 balance)  {
-			balance = balances[addr];
+	function getAddressBalance(address addr) constant returns (uint256 balance) {
+		balance = balances[addr];
 	}
 
-	function getAddressAndBalance(address addr) constant returns (address _address, uint256 _amount)  {
-			_address = addr;
-			_amount = balances[addr];
+	function getAddressAndBalance(address addr) constant returns (address _address, uint256 _amount) {
+		_address = addr;
+		_amount = balances[addr];
 	}
 
 	function setStopDefrost() onlyOwner {
@@ -193,6 +188,5 @@ contract NaviToken is StandardToken, Ownable {
 	function killContract() onlyOwner {
 		selfdestruct(owner);
 	}
-
 
 }
