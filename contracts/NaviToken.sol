@@ -1,8 +1,8 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
-import "./StandardToken.sol";
-import "./Ownable.sol";
-import "./SafeMath.sol";
+import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract NaviToken is StandardToken, Ownable {
 
@@ -16,8 +16,8 @@ contract NaviToken is StandardToken, Ownable {
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 	int public constant DEFROST_MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
-	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 6; 
-	int public constant DEFROST_ADVISOR_MONTHS = 6; 
+	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 6;
+	int public constant DEFROST_ADVISOR_MONTHS = 6;
 
 	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
@@ -25,7 +25,7 @@ contract NaviToken is StandardToken, Ownable {
 	address[] vIcedBalancesReserveAndTeam;
 	mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
     mapping (address => uint256) icedBalancesTeamAndAdv_defrosted;
-	
+
 	address[] vIcedBalancesAdvisors;
 	mapping (address => uint256) mapIcedBalancesAdvisors;
 
@@ -45,7 +45,7 @@ contract NaviToken is StandardToken, Ownable {
 
 		// for test only: set START_ICO to contract creation timestamp
 		// +600 => add 10 minutes
-		START_ICO_TIMESTAMP = now; // line to remove before the main net deployment 
+		START_ICO_TIMESTAMP = now; // line to remove before the main net deployment
 	}
 
 	/**
@@ -54,7 +54,7 @@ contract NaviToken is StandardToken, Ownable {
    * @param _vamounts address The address which you want to transfer to
    */
   function batchAssignTokens(address[] _vaddr, uint[] _vamounts, uint[] _vDefrostClass ) onlyOwner {
-	  
+
 			require ( batchAssignStopped == false );
 			require ( _vaddr.length == _vamounts.length && _vaddr.length == _vDefrostClass.length);
 			//Looping into input arrays to assign target amount to each given address
@@ -62,18 +62,18 @@ contract NaviToken is StandardToken, Ownable {
 
 				address toAddress = _vaddr[index];
 				uint amount = SafeMath.mul(_vamounts[index], 10 ** decimals);
-				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor 
-			
+				uint defrostClass = _vDefrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
+
 				assignedSupply = SafeMath.add(assignedSupply, amount);
 				if (  defrostClass  == 0 ) {
 					// investor account
 					balances[toAddress] = amount;
 				}
 				else if(defrostClass == 1){
-				
+
 					// Iced account. The balance is not affected here
                     vIcedBalancesReserveAndTeam.push(toAddress);
-					balances[toAddress] = 0;                   
+					balances[toAddress] = 0;
                     icedBalancesTeamAndAdv_frosted[toAddress] = amount;
 					icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
 
@@ -98,7 +98,7 @@ contract NaviToken is StandardToken, Ownable {
 	function getReserveAndTeamDefrostFactor()constant returns (uint){
 		return DEFROST_FACTOR_TEAMANDADV;
 	}
-	
+
 	function lagReserveAndTeamDefrost()constant returns (int){
 		return DEFROST_RESERVEANDTEAM_MONTHS;
 	}
@@ -109,7 +109,7 @@ contract NaviToken is StandardToken, Ownable {
 
 	function canDefrostReserveAndTeam()constant returns (bool){
 		int numMonths = elapsedMonthsFromICOStart();
-		return  numMonths >= DEFROST_RESERVEANDTEAM_MONTHS && 
+		return  numMonths >= DEFROST_RESERVEANDTEAM_MONTHS &&
 							uint(numMonths) <= SafeMath.add(uint(DEFROST_RESERVEANDTEAM_MONTHS),  DEFROST_FACTOR_TEAMANDADV);
 	}
 
@@ -130,7 +130,7 @@ contract NaviToken is StandardToken, Ownable {
             uint256 amountTotal = SafeMath.add(icedBalancesTeamAndAdv_frosted[currentAddress], icedBalancesTeamAndAdv_defrosted[currentAddress]);
             uint256 targetDeFrosted = SafeMath.div(SafeMath.mul(monthsIndex, amountTotal), DEFROST_FACTOR_TEAMANDADV);
             uint256 amountToRelease = SafeMath.sub(targetDeFrosted, icedBalancesTeamAndAdv_defrosted[currentAddress]);
-           
+
 		    if (amountToRelease > 0) {
                 icedBalancesTeamAndAdv_frosted[currentAddress] = SafeMath.sub(icedBalancesTeamAndAdv_frosted[currentAddress], amountToRelease);
                 icedBalancesTeamAndAdv_defrosted[currentAddress] = SafeMath.add(icedBalancesTeamAndAdv_defrosted[currentAddress], amountToRelease);
