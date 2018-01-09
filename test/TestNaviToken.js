@@ -1,3 +1,4 @@
+var MONTHS_IN_SECCONDS = 60*60*24*30;
 var NaviToken = artifacts.require("./NaviToken.sol");
 
 contract('NaviToken', function(accounts) {
@@ -102,6 +103,54 @@ contract('NaviToken', function(accounts) {
     });
   });
 
+  it("should can defrost after defrostTime", function() {
+    return NaviToken.deployed().then(function(instance) {
+      web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [MONTHS_IN_SECCONDS*7], id: 1});
+      web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 2});
+      return instance.canDefrostReserveAndTeam.call();
+    }).then(function(defrostEnabled) {
+      console.log("canDefrostReserveAndTeam after 7 month = " + defrostEnabled);
+      assert.equal(defrostEnabled, true, "Error: defrostReserveAndTeamTokens not enable after 7 month");
+    });
+  });
+
+  it("should assign team token balance after defrost", function() {
+    var theInstance;
+    return NaviToken.deployed().then(function(instance) {
+      theInstance = instance;
+      instance.defrostReserveAndTeamTokens();
+      web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [MONTHS_IN_SECCONDS*29], id: 1});
+       instance.defrostReserveAndTeamTokens();
+      return instance.defrostReserveAndTeamTokens();
+    }).then(function(){
+      return theInstance.getAddressAndBalance(vmyaddr[1]);
+    }).then(function(balanceAndAddress){
+      teamAddress = balanceAndAddress[0];
+      teamAmount = balanceAndAddress[1].toNumber();
+      console.log("team amount = " + teamAmount);
+      assert.equal(teamAmount, '2e+22', "Error: defrosted team tokens mismatch");
+      return theInstance.elapsedMonthsFromICOStart.call();
+    }).then(function(elapsedMonths) {
+      console.log("elapsedMonths from ICO start = " + elapsedMonths);
+      assert.equal(elapsedMonths, 36, "Error: months count after start ICO and end defrost");
+    });
+  });
+
+  it("should assign advisor token balance after defrost", function() {
+    var theInstance;
+    return NaviToken.deployed().then(function(instance) {
+      theInstance = instance;
+      return instance.defrostAdvisorsTokens();
+    }).then(function(){
+      return theInstance.getAddressAndBalance(vmyaddr[2]);
+    }).then(function(balanceAndAddress){
+      teamAddress = balanceAndAddress[0];
+      teamAmount = balanceAndAddress[1].toNumber();
+      console.log("advisor amount = " + teamAmount);
+      assert.equal(teamAmount, '2.5e+22', "Error: defrosted advisor tokens mismatch");
+    });
+  });
+
 
   it("should set stopDefrost value to true", function() {
     var theInstance;
@@ -116,6 +165,17 @@ contract('NaviToken', function(accounts) {
       console.log("stopDefrost retreved shuld be true = " + stopD2);
       assert.equal(stopD2, true, "Error: stopDefrost false after being set to false");
     });
+  });
+
+  it("should defrost after stopDefrost", function() {
+    return NaviToken.deployed().then(function(instance) {
+      console.log("defrostAdvisorsTokens() ... ");
+      return instance.defrostAdvisorsTokens.call();
+    }).then(function() {
+      assert.equal(true, false, "Error: defrost available after stopDefrost");
+    }).catch(function(e) {
+      //
+    })
   });
 
   /*it("should retrieve stopDefrost value = true", function() {
