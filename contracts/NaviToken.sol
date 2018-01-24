@@ -185,8 +185,4 @@ contract NaviToken is StandardToken, Ownable {
 		stopDefrost = true;
 	}
 
-	function killContract() onlyOwner {
-		selfdestruct(owner);
-	}
-
 }
