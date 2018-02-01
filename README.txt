@@ -31,6 +31,5 @@ please note: before defrost you must wait for :
 		START_ICO_TIMESTAMP = now + 600; // line to remove before the main net deployment 
 * is time to defrost: period before defrosting is elapsed for equities or team/advisor: please change parameters in the NaviToken.sol smart contract to speed-up the overall procedure during tests
 		
-		int public constant DEFROST_MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
-		int public constant DEFROST_EQUITIES_MONTHS = 4; 
-		int public constant DEFROST_TEAMADVISOR_MONTHS = 8; 
+		int public constant MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
+		int public constant DEFROST_AFTER_MONTHS = 6;

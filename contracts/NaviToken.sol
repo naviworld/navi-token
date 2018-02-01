@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -15,9 +15,9 @@ contract NaviToken is StandardToken, Ownable {
 	// Freeze duration for Advisors accounts
 	// uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
 	uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
-	int public constant DEFROST_MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
-	int public constant DEFROST_RESERVEANDTEAM_MONTHS = 6;
-	int public constant DEFROST_ADVISOR_MONTHS = 6;
+
+	int public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
+	int public constant DEFROST_AFTER_MONTHS = 6;
 
 	uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
@@ -32,15 +32,17 @@ contract NaviToken is StandardToken, Ownable {
 
 	// Variable usefull for verifying that the assignedSupply matches that totalSupply
 	uint256 public assignedSupply;
+
 	//Boolean to allow or not the initial assignement of token (batch)
 	bool public batchAssignStopped = false;
 	bool public stopDefrost = false;
 
 	function NaviToken() {
+		totalSupply          	= MAX_NUM_NAVITOKENS;
+
 		owner                	= msg.sender;
 		uint256 amountReserve  	= SafeMath.div(SafeMath.mul(MAX_NUM_NAVITOKENS, 20) , 100);  // 20% allocated and controlled by to NaviAddress
 		balances[owner]  		= amountReserve;
-		totalSupply          	= MAX_NUM_NAVITOKENS;
 		assignedSupply       	= amountReserve;
 
 		// for test only: set START_ICO to contract creation timestamp
@@ -49,7 +51,7 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	/**
-    * @dev Transfer tokens in batches (of adresses)
+    * @dev Transfer tokens in batches (of addresses)
     * @param _addr address The address which you want to send tokens from
     * @param _amounts address The address which you want to transfer to
     */
@@ -87,7 +89,7 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	function elapsedMonthsFromICOStart() constant returns (int elapsed) {
-		elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / DEFROST_MONTH_IN_MINUTES;
+		elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / MONTH_IN_MINUTES;
 	}
 
 	function getReserveAndTeamDefrostFactor() constant returns (uint) {
@@ -95,17 +97,17 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	function lagReserveAndTeamDefrost() constant returns (int) {
-		return DEFROST_RESERVEANDTEAM_MONTHS;
+		return DEFROST_AFTER_MONTHS;
 	}
 
 	function lagAdvisorsDefrost() constant returns (int) {
-		return DEFROST_ADVISOR_MONTHS;
+		return DEFROST_AFTER_MONTHS;
 	}
 
 	function canDefrostReserveAndTeam() constant returns (bool) {
 		int numMonths = elapsedMonthsFromICOStart();
-		return  numMonths >= DEFROST_RESERVEANDTEAM_MONTHS &&
-							uint(numMonths) <= SafeMath.add(uint(DEFROST_RESERVEANDTEAM_MONTHS),  DEFROST_FACTOR_TEAMANDADV);
+		return  numMonths >= DEFROST_AFTER_MONTHS &&
+							uint(numMonths) <= SafeMath.add(uint(DEFROST_AFTER_MONTHS),  DEFROST_FACTOR_TEAMANDADV);
 	}
 
 	function defrostReserveAndTeamTokens() onlyOwner {
@@ -113,7 +115,7 @@ contract NaviToken is StandardToken, Ownable {
 		require(now>START_ICO_TIMESTAMP);
 		require(stopDefrost == false);
 
-		int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_RESERVEANDTEAM_MONTHS;
+		int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_AFTER_MONTHS;
 		require(monthsElapsedTeamAndAdv > 0);
 		uint monthsIndex = uint(monthsElapsedTeamAndAdv);
 		require(monthsIndex <= DEFROST_FACTOR_TEAMANDADV);
@@ -135,7 +137,7 @@ contract NaviToken is StandardToken, Ownable {
 	}
 
 	function canDefrostAdvisors() constant returns (bool) {
-		return elapsedMonthsFromICOStart() == DEFROST_ADVISOR_MONTHS;
+		return elapsedMonthsFromICOStart() == DEFROST_AFTER_MONTHS;
 	}
 
 	function defrostAdvisorsTokens() onlyOwner {
@@ -143,7 +145,7 @@ contract NaviToken is StandardToken, Ownable {
 		require(now > START_ICO_TIMESTAMP);
 		require(stopDefrost == false);
 
-		require(elapsedMonthsFromICOStart() >= DEFROST_ADVISOR_MONTHS);
+		require(elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS);
 		for (uint index = 0; index < icedBalancesAdvisors.length; index++) {
 			address currentAddress = icedBalancesAdvisors[index];
 			uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
@@ -158,10 +160,6 @@ contract NaviToken is StandardToken, Ownable {
 			}
 		}
 	}
-
-	/*function getNow() constant returns (uint) {
-		return now;
-	}*/
 
 	function getStartIcoTimestamp() constant returns (uint) {
 		return START_ICO_TIMESTAMP;
