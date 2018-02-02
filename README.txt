@@ -16,13 +16,13 @@ HOW TO TEST
 	- account[0] is the owner
 	- account[1][2][3] are TEAM/ADVISORS 
 	- account[4][5][6] are EQUITIES investors
-	- account[>=10] are fare address randomly assigned to ona of the trees classes (TEAM/ADVISORS - EQUITIES - NORMAL INVESTOR)
+	- account[>=10] are fare address randomly assigned to ona of the trees classes (TEAM/RESERVE - ADVISORS - NORMAL INVESTOR)
 	please note that account[>=10] have no private keys: if you want to test token transfer (locally or on a wallet) you must use one of 10 first accounts
 
-- launch the AssignTokensScheduler.js to dispatch token to all investors
-- launch the verifyBatchAssignNormalInvestor.js to check that token amounts are correctly assigned to NORMAL INVESTORS
-- launch the TryDefrostEquities.js	to defrost  EQUITIES investors tokens
-- launch the TryDefrostTeamAndAdvisors.js  to defrost  TEAM/ADVISORS  investors tokens
+- launch the AssignTokensScheduler.js             to dispatch token to all investors
+- launch the verifyBatchAssignNormalInvestor.js   to check that token amounts are correctly assigned to NORMAL INVESTORS
+- launch the TryDefrostAdvisors.js	          to defrost advisors tokens ( only frosted for 6 month )
+- launch the TryDefrostReserveAndTeam.js         to defrost  TEAM/RESERVE  investors tokens ( frosted for 6 month and then vested for 30 month )
 
 please note: before defrost you must wait for :
 * ICO started: change this manually in the constructor to set the ICO start timestamp
