@@ -68,19 +68,14 @@ contract('NaviToken', function(accounts) {
     });
   });
 
-  let vmyaddr = [];
-  // fake adresses
-  vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb0000')
-  vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb1111')
-  vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb2222')
-  let vmyamount = [];
-  vmyamount.push(15000)
-  vmyamount.push(20000)
-  vmyamount.push(25000)
-  let vmyclass = [];
-  vmyclass.push(0)
-  vmyclass.push(1)
-  vmyclass.push(2)
+  const vmyaddr = [
+     '0xffff2828eeee4545dddd0808cccc7777bbbb0000',
+     '0xffff2828eeee4545dddd0808cccc7777bbbb1111',
+     '0xffff2828eeee4545dddd0808cccc7777bbbb2222',
+  ];
+  const vmyamount = [15000, 20000, 25000];
+  const vmyclass = [0, 1, 2];
+
   it("should assign tokens to three address (one investor, one team&reserve, one advisor)", function() {
     return NaviToken.deployed().then(function(instance) {
       return instance.batchAssignTokens(vmyaddr,vmyamount,vmyclass);
