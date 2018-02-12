@@ -42,7 +42,6 @@ contract NaviToken is StandardToken, Ownable {
     function NaviToken() {
         totalSupply              = MAX_NUM_NAVITOKENS;
 
-        owner                    = msg.sender;
         uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(20).div(100);  // 20% allocated and controlled by to NaviAddress
         balances[owner]          = amountReserve;
         assignedSupply           = amountReserve;
