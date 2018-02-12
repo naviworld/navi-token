@@ -1,8 +1,8 @@
 {
   "name": "navi-token",
   "version": "1.0.0",
-  "description": "",
-  "main": "deployNAVI.js",
+  "description": "Naviaddress Platform",
+  "main": "./scripts/deployNAVI.js",
   "directories": {
     "test": "test"
   },
@@ -11,9 +11,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/naviworld/navi-token.git"
+    "url": "https://github.com/naviworld/navi-token.git"
   },
-  "author": "",
+  "author": "Mikhail Zelenin <mikhail.zelenin@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/naviworld/navi-token/issues"

@@ -5,8 +5,8 @@ const path = require('path');
 // LOAD PARAMETERS --------------------------------
 const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
 const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
-var urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
-var ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
+let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
+let ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
 console.log('urlEthereumNode = ' + urlEthereumNode)
 console.log('ownerPwd = ' + ownerPassword)
 
@@ -74,7 +74,7 @@ async function waitBlock() {
     if (receipt && receipt.contractAddress) {
       console.log("Your contract has been deployed at http://testnet.etherscan.io/address/" + receipt.contractAddress);
       console.log("Note that it might take 30 - 90 sceonds for the block to propagate befor it's visible in etherscan.io");
-      var filewriter = fs.createWriteStream(SMARTCONTRACT_ADDRESS_FILEPATH);
+      let filewriter = fs.createWriteStream(SMARTCONTRACT_ADDRESS_FILEPATH);
       filewriter.write(receipt.contractAddress)
       break;
     }

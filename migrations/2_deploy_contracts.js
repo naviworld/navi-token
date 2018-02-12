@@ -4,7 +4,7 @@ const path = require('path');
 
 const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/smart-contract-address.txt'
 
-var NaviToken = artifacts.require("./NaviToken.sol");
+let NaviToken = artifacts.require("./NaviToken.sol");
 
 module.exports = function(deployer) {
     deployer.deploy(NaviToken).then(function() {   

@@ -1,5 +1,5 @@
-var MONTHS_IN_SECCONDS = 60*60*24*30;
-var NaviToken = artifacts.require("./NaviToken.sol");
+const MONTHS_IN_SECCONDS = 60*60*24*30;
+const NaviToken = artifacts.require("./NaviToken.sol");
 
 contract('NaviToken', function(accounts) {
   it("should retrieve max number of NaviToken", function() {
@@ -26,7 +26,7 @@ contract('NaviToken', function(accounts) {
       return instance.getStartIcoTimestamp.call();
     }).then(function(startICOts) {
       console.log("startICOts = " + startICOts);
-      var diff = Date.now() - startICOts;
+      let diff = Date.now() - startICOts;
       assert.equal(diff>1, true, "start ICO timestamp error");
     });
   });
@@ -68,16 +68,16 @@ contract('NaviToken', function(accounts) {
     });
   });
 
-  var vmyaddr = [];
+  let vmyaddr = [];
   // fake adresses
   vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb0000')
   vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb1111')
   vmyaddr.push('0xffff2828eeee4545dddd0808cccc7777bbbb2222')
-  var vmyamount = [];
+  let vmyamount = [];
   vmyamount.push(15000)
   vmyamount.push(20000)
   vmyamount.push(25000)
-  var vmyclass = [];
+  let vmyclass = [];
   vmyclass.push(0)
   vmyclass.push(1)
   vmyclass.push(2)
@@ -115,7 +115,7 @@ contract('NaviToken', function(accounts) {
   });
 
   it("should assign team token balance after defrost", function() {
-    var theInstance;
+    let theInstance;
     return NaviToken.deployed().then(function(instance) {
       theInstance = instance;
       instance.defrostReserveAndTeamTokens();
@@ -137,7 +137,7 @@ contract('NaviToken', function(accounts) {
   });
 
   it("should assign advisor token balance after defrost", function() {
-    var theInstance;
+    let theInstance;
     return NaviToken.deployed().then(function(instance) {
       theInstance = instance;
       return instance.defrostAdvisorsTokens();
@@ -153,7 +153,7 @@ contract('NaviToken', function(accounts) {
 
 
   it("should set stopDefrost value to true", function() {
-    var theInstance;
+    let theInstance;
     return NaviToken.deployed().then(function(instance) {
       theInstance = instance;
       console.log("setStopDefrost() ... ");

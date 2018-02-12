@@ -16,11 +16,11 @@ const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_i
 const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/PARAMS/assign_interval_sec.txt'
 const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
 
-var urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
-var ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
-var chunkSize = require('fs').readFileSync(CHUNKSIZE_FILEPATH, 'utf-8')
-var assignIntervalSec = parseInt(1000 * require('fs').readFileSync(INTERVALSEC_FILEPATH, 'utf-8'))
-var contractAddress  = require('fs').readFileSync(CONTRACTADDRESS_FILEPATH).toString();
+let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
+let ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
+let chunkSize = require('fs').readFileSync(CHUNKSIZE_FILEPATH, 'utf-8')
+let assignIntervalSec = parseInt(1000 * require('fs').readFileSync(INTERVALSEC_FILEPATH, 'utf-8'))
+let contractAddress  = require('fs').readFileSync(CONTRACTADDRESS_FILEPATH).toString();
 
 console.log('-----------------------------------------------------')
 console.log('urlEthereumNode = ' + urlEthereumNode)
@@ -39,8 +39,8 @@ const NaviToken = require('./build/contracts/NaviToken.json');
 const Web3 = require('web3');
 web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
 
-var ACTIONS_PATH = "./ACTIONS"
-var LOGS_PATH = "./LOGS/"
+let ACTIONS_PATH = "./ACTIONS"
+let LOGS_PATH = "./LOGS/"
 
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 console.log('naviContract = ' + naviContract)
@@ -64,13 +64,13 @@ console.log('NUM ACCOUNTS = ' + vAccounts.length)
 console.log('intervalSec = ' + assignIntervalSec)
 assignTimerId = setInterval(timerAssignFunction, assignIntervalSec);
 
-var cntTimer = parseInt(0)
+let cntTimer = parseInt(0)
 function timerAssignFunction() {
 
         console.log('timerAssignFunction scheduler call ............................. cntTimer = ' + cntTimer)
-        var numToSend = parseInt(0)
-        var from = parseInt(cntTimer * objAssignParams.chunkSize)
-        var to = parseInt(from) + parseInt(objAssignParams.chunkSize)
+        let numToSend = parseInt(0)
+        let from = parseInt(cntTimer * objAssignParams.chunkSize)
+        let to = parseInt(from) + parseInt(objAssignParams.chunkSize)
         console.log('from = ' + from + '  -  to = ' + to)
 
         if( from >= vAccounts.length){
@@ -78,9 +78,9 @@ function timerAssignFunction() {
             clearInterval(assignTimerId);
         }
         // fill address/amounts arrays
-        var vaddr = []
-        var vamounts = []
-        var vclass = []
+        let vaddr = []
+        let vamounts = []
+        let vclass = []
         for(i=from;i<to;i++){
 
             // check the end 
@@ -93,7 +93,7 @@ function timerAssignFunction() {
             }else{
 
                 //console.log('vAccounts[i] = ' + vAccounts[i] + '  - numToSend = ' + numToSend)
-                var vv = vAccounts[i].split(",");
+                let vv = vAccounts[i].split(",");
                 if(vv.length == 3){
                     vaddr.push(vv[0]);
                     vamounts.push(parseInt(vv[1]));
@@ -114,7 +114,7 @@ function timerAssignFunction() {
               console.log('calling timerAssignFunction ....... ');
               console.log('param =  ' + objAssignParams.contractaddress + ' ' + objAssignParams.accountpwd +' ' + numToSend);
               
-              var numSent = sendAssignChunkToSmartContract(objAssignParams.contractaddress,objAssignParams.accountpwd,
+              let numSent = sendAssignChunkToSmartContract(objAssignParams.contractaddress,objAssignParams.accountpwd,
                                                       vaddr, vamounts, vclass, numToSend);
               console.log("...END -> cntTimer = " + cntTimer)
         }
@@ -142,7 +142,7 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
     dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
     //console.log("dataparam = " + dataparam );
     console.log("estimating gas... ");
-    var estimatedGas = web3.eth.estimateGas({data: dataparam, gas: 155000})    
+    let estimatedGas = web3.eth.estimateGas({data: dataparam, gas: 155000})    
     console.log("estimate = " + estimatedGas );
     estimatedGas = estimatedGas * chunkSize + 15000;
 

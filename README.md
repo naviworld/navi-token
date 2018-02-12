@@ -1,5 +1,14 @@
+# NVT or Naviddress Token
 
-HOW TO TEST
+NVT is the token of the Naviaddress platform.
+
+NVT is a smart token, based in the ERC20 standard.
+
+## Requirements
+
+Node v7.6 or higher
+
+## Test
 
 - download the project
 - unzip the NAV.zip file on the same folder to get the PARAMS/OUTPUTS/DEFROST folders
@@ -26,6 +35,7 @@ HOW TO TEST
 
 please note: before defrost you must wait for :
 * ICO started: change this manually in the constructor to set the ICO start timestamp
+
 		// for test only: set START_ICO to contract creation timestamp
 		// +600 => add 10 minutes
 		START_ICO_TIMESTAMP = now + 600; // line to remove before the main net deployment 
@@ -33,3 +43,8 @@ please note: before defrost you must wait for :
 		
 		int public constant MONTH_IN_MINUTES = 2; // month in minutes  (1month = 43200 min)
 		int public constant DEFROST_AFTER_MONTHS = 6;
+
+## License
+
+NVT is open source and distributed under the GPL v3 license.
+>>>>>>> Update README file; move scripts to separate folder; add a license.:README.md

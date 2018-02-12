@@ -12,9 +12,9 @@ const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_i
 const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
 
 // set parameters -------------------------------------------------
-var urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
-var ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
-var contractAddress = require('fs').readFileSync(CONTRACTADDRESS_FILEPATH, 'utf-8')
+let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
+let ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
+let contractAddress = require('fs').readFileSync(CONTRACTADDRESS_FILEPATH, 'utf-8')
 console.log('urlEthereumNode = ' + urlEthereumNode)
 console.log('ownerPwd = ' + ownerPassword)
 console.log('filePathAccountsAmounts = ' + ACCOUNTSAMOUNTS_FILEPATH)
@@ -23,7 +23,7 @@ console.log('contractAddress = ' + contractAddress)
 let web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
 console.log('Web3 OK')
 
-var naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
+let naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
 //web3.personal.unlockAccount(web3.eth.accounts[0], ownerPassword)
 console.log('unlockAccount OK')
@@ -31,36 +31,36 @@ web3.eth.defaultAccount = web3.eth.accounts[0];
 
 console.log('')
 
-//var vaddr = []
-//var vamounts = []
-//var viced = []
-var lines = require('fs').readFileSync(ACCOUNTSAMOUNTS_FILEPATH, 'utf-8').split('\n');
+//let vaddr = []
+//let vamounts = []
+//let viced = []
+let lines = require('fs').readFileSync(ACCOUNTSAMOUNTS_FILEPATH, 'utf-8').split('\n');
 
-var vmatchOK = []
-var vmatchErr = []
-var totalAssigned = parseInt(0)
+let vmatchOK = []
+let vmatchErr = []
+let totalAssigned = parseInt(0)
 
-var dict = [];
-var dictIced = [];
-var multDecimals = 1000000000000000000
+let dict = [];
+let dictIced = [];
+let multDecimals = 1000000000000000000
 
-var vv = lines[10].split(",");
+let vv = lines[10].split(",");
 
-var vmatchOK = []
-var vmatchErr = []
-var totalAssignedOnFile = 0
-var totalAssignedOnEth = 0
-for (var i=0; i<lines.length; i++) {
-  var vv = lines[i].split(",");
+let vmatchOK = []
+let vmatchErr = []
+let totalAssignedOnFile = 0
+let totalAssignedOnEth = 0
+for (let i=0; i<lines.length; i++) {
+  let vv = lines[i].split(",");
   if(vv.length == 3){   
-    var userAddress = vv[0];    
-    var userAmount = vv[1] * multDecimals; // decimals = 18
+    let userAddress = vv[0];
+    let userAmount = vv[1] * multDecimals; // decimals = 18
     dict[userAddress] = userAmount;    
-    var classInvestor = parseInt(vv[2]);
+    let classInvestor = parseInt(vv[2]);
 
     console.log(userAddress  + " - classInvestor = " + classInvestor )
 
-    if(classInvestor > 0 ){ // iced only (reserve and team + advisors)
+    if(classInvestor == 0){ // not iced
         
         totalAssignedOnFile += parseInt(vv[1]);
         naviContract.getAddressAndBalance.call(userAddress, function(error, result){
@@ -74,10 +74,10 @@ for (var i=0; i<lines.length; i++) {
 
                 if( retAmount == dict[retAddress] ){
                     totalAssignedOnEth += (retAmount / multDecimals)
-                    var strOk = retAddress + "  -  AMOUNT MATCHING OK = " + retAmount + " ->  numTokensAssigned = " + totalAssigned;                    
+                    let strOk = retAddress + "  -  AMOUNT MATCHING OK = " + retAmount + " ->  numTokensAssigned = " + totalAssigned;
                     vmatchOK.push(strOk)
                 }else{
-                    var strErr = "!!!!  ERROR ERROR ERROR:  " + dict[retAddress] + "  -  amount MISMATCH ERROR = " + retAmount;
+                    let strErr = "!!!!  INVESTOR INVESTOR ERROR ERROR ERROR:  " + dict[retAddress] + "  -  amount MISMATCH ERROR = " + retAmount;
                     console.log(strErr)
                     vmatchErr.push(strErr)
                 }
@@ -102,10 +102,10 @@ for (var i=0; i<lines.length; i++) {
 		
                 if( balance === balanceAttendue ){
                     totalAssigned +=((frosted + defrosted)*multDecimals)
-                    var strOk = icedAddr + "  -  AMOUNT MATCHING OK = " + balance + " ->  numTokensAssigned = " + totalAssigned;                    
+                    let strOk = icedAddr + "  -  AMOUNT MATCHING OK = " + balance + " ->  numTokensAssigned = " + totalAssigned;
                     vmatchOK.push(strOk)
                 }else{
-                    var strErr = "!!!!  ICED ICED ERROR ERROR ERROR:  " + userAddress+ "  - amount MISMATCH ERROR = " + balance + " attendue = " + balanceAttendue;
+                    let strErr = "!!!!  ICED ICED ERROR ERROR ERROR:  " + userAddress+ "  - amount MISMATCH ERROR = " + balance + " attendue = " + balanceAttendue;
                     console.log(strErr)
                     vmatchErr.push(strErr)
                 }
@@ -119,11 +119,11 @@ for (var i=0; i<lines.length; i++) {
 }
 
 const NUMTOKENSENT_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_number_of_tokens.txt'
-var sentNumberOfToken = parseInt(require('fs').readFileSync(NUMTOKENSENT_FILEPATH, 'utf-8'))
+let sentNumberOfToken = parseInt(require('fs').readFileSync(NUMTOKENSENT_FILEPATH, 'utf-8'))
 sentNumberOfToken = sentNumberOfToken;
 
-var cnt=0
-var waitTimerID = setInterval(function() {
+let cnt=0
+let waitTimerID = setInterval(function() {
         if(cnt==0){console.log('')}
         if(totalAssignedOnFile === totalAssignedOnEth){
             
