@@ -23,6 +23,7 @@ contract NaviToken is StandardToken, Ownable {
 
     uint256 public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
+    enum DefrostClass {Investor, ReserveAndTeam, Advisor}
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
     mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
@@ -56,26 +57,26 @@ contract NaviToken is StandardToken, Ownable {
     * @param _addr address The address which you want to send tokens from
     * @param _amounts address The address which you want to transfer to
     */
-    function batchAssignTokens(address[] _addr, uint256[] _amounts, uint256[] _defrostClass) onlyOwner {
+    function batchAssignTokens(address[] _addr, uint256[] _amounts, DefrostClass[] _defrostClass) onlyOwner {
         require (batchAssignStopped == false);
         require (_addr.length == _amounts.length && _addr.length == _defrostClass.length);
         //Looping into input arrays to assign target amount to each given address
         for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
-            uint defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
+            DefrostClass defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
 
             assignedSupply = assignedSupply.add(amount);
-            if (defrostClass == 0) {
+            if (defrostClass == DefrostClass.Investor) {
                 // investor account
                 balances[toAddress] = amount;
-            } else if (defrostClass == 1) {
+            } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
                 balances[toAddress] = 0;
                 icedBalancesTeamAndAdv_frosted[toAddress] = amount;
                 icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
-            } else if (defrostClass == 2) {
+            } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
                 if (mapIcedBalancesAdvisors[toAddress] == 0) {
