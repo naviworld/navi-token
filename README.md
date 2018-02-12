@@ -47,4 +47,3 @@ please note: before defrost you must wait for :
 ## License
 
 NVT is open source and distributed under the GPL v3 license.
->>>>>>> Update README file; move scripts to separate folder; add a license.:README.md
