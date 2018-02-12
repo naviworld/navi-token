@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.19;
 
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
@@ -18,10 +18,10 @@ contract NaviToken is StandardToken, Ownable {
     // uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
     uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 
-    int public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
-    int public constant DEFROST_AFTER_MONTHS = 6;
+    uint256 public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
+    uint256 public constant DEFROST_AFTER_MONTHS = 6;
 
-    uint public constant DEFROST_FACTOR_TEAMANDADV = 30;
+    uint256 public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
@@ -57,11 +57,11 @@ contract NaviToken is StandardToken, Ownable {
     * @param _addr address The address which you want to send tokens from
     * @param _amounts address The address which you want to transfer to
     */
-    function batchAssignTokens(address[] _addr, uint[] _amounts, uint[] _defrostClass) onlyOwner {
+    function batchAssignTokens(address[] _addr, uint256[] _amounts, uint256[] _defrostClass) onlyOwner {
         require (batchAssignStopped == false);
         require (_addr.length == _amounts.length && _addr.length == _defrostClass.length);
         //Looping into input arrays to assign target amount to each given address
-        for (uint index = 0; index < _addr.length; index++) {
+        for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
             uint defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
@@ -90,40 +90,40 @@ contract NaviToken is StandardToken, Ownable {
         return now;
     }
 
-    function elapsedMonthsFromICOStart() constant returns (int _elapsed) {
-        _elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / MONTH_IN_MINUTES;
+    function elapsedMonthsFromICOStart() view returns (uint256) {
+       return (now <= START_ICO_TIMESTAMP) ? 0 : (now - START_ICO_TIMESTAMP) / 60 / MONTH_IN_MINUTES;
     }
 
-    function getReserveAndTeamDefrostFactor() constant returns (uint) {
+    function getReserveAndTeamDefrostFactor() constant returns (uint256) {
         return DEFROST_FACTOR_TEAMANDADV;
     }
 
-    function lagReserveAndTeamDefrost() constant returns (int) {
+    function lagReserveAndTeamDefrost() constant returns (uint256) {
         return DEFROST_AFTER_MONTHS;
     }
 
-    function lagAdvisorsDefrost() constant returns (int) {
+    function lagAdvisorsDefrost() constant returns (uint256) {
         return DEFROST_AFTER_MONTHS;
     }
 
     function canDefrostReserveAndTeam() constant returns (bool) {
-        int numMonths = elapsedMonthsFromICOStart();
+        uint256 numMonths = elapsedMonthsFromICOStart();
         return  numMonths >= DEFROST_AFTER_MONTHS &&
-                            uint(numMonths) <= uint(DEFROST_AFTER_MONTHS).add(DEFROST_FACTOR_TEAMANDADV);
+                            numMonths <= DEFROST_AFTER_MONTHS.add(DEFROST_FACTOR_TEAMANDADV);
     }
 
     function defrostReserveAndTeamTokens() onlyOwner {
 
-        require(now>START_ICO_TIMESTAMP);
+        require(now > START_ICO_TIMESTAMP);
         require(stopDefrost == false);
 
-        int monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_AFTER_MONTHS;
+        uint256 monthsElapsedTeamAndAdv = elapsedMonthsFromICOStart() - DEFROST_AFTER_MONTHS;
         require(monthsElapsedTeamAndAdv > 0);
-        uint monthsIndex = uint(monthsElapsedTeamAndAdv);
+        uint256 monthsIndex = uint256(monthsElapsedTeamAndAdv);
         require(monthsIndex <= DEFROST_FACTOR_TEAMANDADV);
 
         // Looping into the iced accounts
-        for (uint index = 0; index < icedBalancesReserveAndTeam.length; index++) {
+        for (uint256 index = 0; index < icedBalancesReserveAndTeam.length; index++) {
 
             address currentAddress = icedBalancesReserveAndTeam[index];
             uint256 amountTotal = icedBalancesTeamAndAdv_frosted[currentAddress].add(icedBalancesTeamAndAdv_defrosted[currentAddress]);
@@ -148,7 +148,7 @@ contract NaviToken is StandardToken, Ownable {
         require(stopDefrost == false);
 
         require(elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS);
-        for (uint index = 0; index < icedBalancesAdvisors.length; index++) {
+        for (uint256 index = 0; index < icedBalancesAdvisors.length; index++) {
             address currentAddress = icedBalancesAdvisors[index];
             uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
             if (amountToDefrost > 0) {
@@ -163,7 +163,7 @@ contract NaviToken is StandardToken, Ownable {
         }
     }
 
-    function getStartIcoTimestamp() constant returns (uint) {
+    function getStartIcoTimestamp() constant returns (uint256) {
         return START_ICO_TIMESTAMP;
     }
 
