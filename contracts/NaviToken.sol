@@ -88,8 +88,8 @@ contract NaviToken is StandardToken, Ownable {
 		return now;
 	}
 
-	function elapsedMonthsFromICOStart() constant returns (int elapsed) {
-		elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / MONTH_IN_MINUTES;
+	function elapsedMonthsFromICOStart() constant returns (int _elapsed) {
+		_elapsed = (int(now - START_ICO_TIMESTAMP) / 60) / MONTH_IN_MINUTES;
 	}
 
 	function getReserveAndTeamDefrostFactor() constant returns (uint) {
@@ -170,13 +170,13 @@ contract NaviToken is StandardToken, Ownable {
 		batchAssignStopped = true;
 	}
 
-	function getAddressBalance(address addr) constant returns (uint256 balance) {
-		balance = balances[addr];
+	function getAddressBalance(address _addr) constant returns (uint256 _balance) {
+		_balance = balances[_addr];
 	}
 
-	function getAddressAndBalance(address addr) constant returns (address _address, uint256 _amount) {
-		_address = addr;
-		_amount = balances[addr];
+	function getAddressAndBalance(address _addr) constant returns (address _address, uint256 _amount) {
+		_address = _addr;
+		_amount = balances[_addr];
 	}
 
 	function setStopDefrost() onlyOwner {
