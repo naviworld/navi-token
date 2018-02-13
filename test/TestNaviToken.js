@@ -113,9 +113,7 @@ contract('NaviToken', function(accounts) {
     let theInstance;
     return NaviToken.deployed().then(function(instance) {
       theInstance = instance;
-      instance.defrostReserveAndTeamTokens();
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [MONTHS_IN_SECCONDS*29], id: 1});
-       instance.defrostReserveAndTeamTokens();
       return instance.defrostReserveAndTeamTokens();
     }).then(function(){
       return theInstance.getAddressAndBalance(vmyaddr[1]);
