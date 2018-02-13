@@ -24,6 +24,7 @@ contract NaviToken is StandardToken, Ownable {
     uint256 public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
     enum DefrostClass {Investor, ReserveAndTeam, Advisor}
+
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
     mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
@@ -32,20 +33,14 @@ contract NaviToken is StandardToken, Ownable {
     address[] icedBalancesAdvisors;
     mapping (address => uint256) mapIcedBalancesAdvisors;
 
-
-    // Variable usefull for verifying that the assignedSupply matches that totalSupply
-    uint256 public assignedSupply;
-
     //Boolean to allow or not the initial assignement of token (batch)
     bool public batchAssignStopped = false;
     bool public stopDefrost = false;
 
     function NaviToken() {
-        totalSupply              = MAX_NUM_NAVITOKENS;
-
         uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(20).div(100);  // 20% allocated and controlled by to NaviAddress
         balances[owner]          = amountReserve;
-        assignedSupply           = amountReserve;
+        totalSupply              = amountReserve;
 
         // for test only: set START_ICO to contract creation timestamp
         // +600 => add 10 minutes
@@ -65,8 +60,10 @@ contract NaviToken is StandardToken, Ownable {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
             DefrostClass defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
+            
+            require(totalSupply.add(amount) <= MAX_NUM_NAVITOKENS);
 
-            assignedSupply = assignedSupply.add(amount);
+            totalSupply = totalSupply.add(amount);
             if (defrostClass == DefrostClass.Investor) {
                 // investor account
                 balances[toAddress] = amount;
