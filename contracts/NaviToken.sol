@@ -66,16 +66,16 @@ contract NaviToken is StandardToken, Ownable {
             totalSupply = totalSupply.add(amount);
             if (defrostClass == DefrostClass.Investor) {
                 // investor account
-                balances[toAddress].add(amount);
+                balances[toAddress] = balances[toAddress].add(amount);
             } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
-                icedBalancesTeamAndAdv_frosted[toAddress].add(amount);
+                icedBalancesTeamAndAdv_frosted[toAddress] = icedBalancesTeamAndAdv_frosted[toAddress].add(amount);
                 icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
             } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
-                mapIcedBalancesAdvisors[toAddress].add(amount);
+                mapIcedBalancesAdvisors[toAddress] = mapIcedBalancesAdvisors[toAddress].add(amount);
             }
         }
     }
