@@ -27,8 +27,8 @@ contract NaviToken is StandardToken, Ownable {
 
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
-    mapping (address => uint256) icedBalancesTeamAndAdv_frosted;
-    mapping (address => uint256) icedBalancesTeamAndAdv_defrosted;
+    mapping (address => uint256) icedBalancesTeamAndReserveFrosted;
+    mapping (address => uint256) icedBalancesTeamAndReserveDefrosted;
 
     address[] icedBalancesAdvisors;
     mapping (address => uint256) mapIcedBalancesAdvisors;
@@ -70,8 +70,8 @@ contract NaviToken is StandardToken, Ownable {
             } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
-                icedBalancesTeamAndAdv_frosted[toAddress] = icedBalancesTeamAndAdv_frosted[toAddress].add(amount);
-                icedBalancesTeamAndAdv_defrosted[toAddress] = 0;
+                icedBalancesTeamAndReserveFrosted[toAddress] = icedBalancesTeamAndReserveFrosted[toAddress].add(amount);
+                icedBalancesTeamAndReserveDefrosted[toAddress] = 0;
             } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
@@ -101,13 +101,13 @@ contract NaviToken is StandardToken, Ownable {
         for (uint256 index = 0; index < icedBalancesReserveAndTeam.length; index++) {
 
             address currentAddress = icedBalancesReserveAndTeam[index];
-            uint256 amountTotal = icedBalancesTeamAndAdv_frosted[currentAddress].add(icedBalancesTeamAndAdv_defrosted[currentAddress]);
+            uint256 amountTotal = icedBalancesTeamAndReserveFrosted[currentAddress].add(icedBalancesTeamAndReserveDefrosted[currentAddress]);
             uint256 targetDeFrosted = monthsIndex.mul(amountTotal).div(DEFROST_FACTOR_TEAMANDADV);
-            uint256 amountToRelease = targetDeFrosted.sub(icedBalancesTeamAndAdv_defrosted[currentAddress]);
+            uint256 amountToRelease = targetDeFrosted.sub(icedBalancesTeamAndReserveDefrosted[currentAddress]);
 
             if (amountToRelease > 0) {
-                icedBalancesTeamAndAdv_frosted[currentAddress] = icedBalancesTeamAndAdv_frosted[currentAddress].sub(amountToRelease);
-                icedBalancesTeamAndAdv_defrosted[currentAddress] = icedBalancesTeamAndAdv_defrosted[currentAddress].add(amountToRelease);
+                icedBalancesTeamAndReserveFrosted[currentAddress] = icedBalancesTeamAndReserveFrosted[currentAddress].sub(amountToRelease);
+                icedBalancesTeamAndReserveDefrosted[currentAddress] = icedBalancesTeamAndReserveDefrosted[currentAddress].add(amountToRelease);
                 balances[currentAddress] = balances[currentAddress].add(amountToRelease);
               }
         }

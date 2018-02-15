@@ -37,8 +37,12 @@ let vAccounts;        // accounts/amounts from txt file
 
 // init ethereum DRT smart contract ----------------------------------------------------------
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
-web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [2592000*38], id: 0});
+
+/*
+//increase time for debug
+web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [2592000*36], id: 0});
 web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0});
+*/
 
 //check we can defrost  (blockchain timestamp > )
 let startico = naviContract.START_ICO_TIMESTAMP();
