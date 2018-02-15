@@ -2,14 +2,14 @@ const path = require('path');
 const fs = require('fs');
 
 
-const NaviToken = require('./build/contracts/NaviToken.json');
+const NaviToken = require('./../build/contracts/NaviToken.json');
 const Web3 = require('web3');
 
 // LOAD PARAMETERS --------------------------------
-const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
-const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
-const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt'
-const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/ethereum_node.txt'
+const PWD_FILEPATH = path.resolve(__dirname) + '/../PARAMS/owner_pwd.txt'
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_input_accounts_amounts.txt'
+const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/smart-contract-address.txt'
 
 // set parameters -------------------------------------------------
 let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
@@ -46,8 +46,6 @@ let multDecimals = 1000000000000000000
 
 let vv = lines[10].split(",");
 
-let vmatchOK = []
-let vmatchErr = []
 let totalAssignedOnFile = 0
 let totalAssignedOnEth = 0
 for (let i=0; i<lines.length; i++) {
@@ -63,13 +61,11 @@ for (let i=0; i<lines.length; i++) {
     if(classInvestor == 0){ // not iced
         
         totalAssignedOnFile += parseInt(vv[1]);
-        naviContract.getAddressAndBalance.call(userAddress, function(error, result){
+        naviContract.balanceOf.call(userAddress, function(error, result){
 
             if (!error) {
-
-                retAddress = result[0];
-                retAmount = result[1];
-
+                retAddress = userAddress;
+                retAmount = result;
                 console.log("getAddressBalance called : " + retAmount + " tokens found for " + retAddress+ " ----  good = " + dict[retAddress]); 
 
                 if( retAmount == dict[retAddress] ){
@@ -118,7 +114,7 @@ for (let i=0; i<lines.length; i++) {
   }
 }
 
-const NUMTOKENSENT_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_number_of_tokens.txt'
+const NUMTOKENSENT_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_number_of_tokens.txt'
 let sentNumberOfToken = parseInt(require('fs').readFileSync(NUMTOKENSENT_FILEPATH, 'utf-8'))
 sentNumberOfToken = sentNumberOfToken;
 

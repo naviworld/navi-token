@@ -3,12 +3,12 @@ const fs = require('fs');
   
 
 // LOAD PARAMETERS --------------------------------
-const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
-const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
-const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt'
-const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/ethereum_node.txt'
+const PWD_FILEPATH = path.resolve(__dirname) + '/../PARAMS/owner_pwd.txt'
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_input_accounts_amounts.txt'
+const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/smart-contract-address.txt'
 
-const DEFROSTED_LOG_ROOT = path.resolve(__dirname) + '/DEFROSTED/'
+const DEFROSTED_LOG_ROOT = path.resolve(__dirname) + '/../DEFROSTED/'
 
 
 // set parameters -------------------------------------------------
@@ -22,7 +22,7 @@ console.log('contractAddress = ' + contractAddress)
 
 
 
-const NaviToken = require('./build/contracts/NaviToken.json');
+const NaviToken = require('./../build/contracts/NaviToken.json');
 const Web3 = require('web3');
 
 let web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
@@ -37,11 +37,13 @@ let vAccounts;        // accounts/amounts from txt file
 
 // init ethereum DRT smart contract ----------------------------------------------------------
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
+web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [2592000*38], id: 0});
+web3.currentProvider.send({jsonrpc: "2.0", method: "evm_mine", params: [], id: 0});
 
 //check we can defrost  (blockchain timestamp > )
-let startico = naviContract.getStartIcoTimestamp();
+let startico = naviContract.START_ICO_TIMESTAMP();
 console.log('------------------->>  startico = ' + startico)
-let rightnow = naviContract.getBlockTimestamp();
+let rightnow = web3.eth.getBlock('latest').timestamp;
 console.log('------------------->>  rightnow = ' + rightnow)
 
 let monthsElapsed = naviContract.elapsedMonthsFromICOStart();
@@ -49,12 +51,12 @@ console.log('------------------->>  elapsed months from ICO Start = ' + monthsEl
 let canDefrost = naviContract.canDefrostReserveAndTeam();
 console.log('------------------->>  canDefrost = ' + canDefrost)
 
-let lagReserveAndTeamDefrost = naviContract.lagReserveAndTeamDefrost();
+let lagReserveAndTeamDefrost = naviContract.DEFROST_AFTER_MONTHS();
 console.log('------------------->>  lagReserveAndTeamDefrost = ' + lagReserveAndTeamDefrost)
-let lagAdvisorsDefrost = naviContract.lagAdvisorsDefrost();
+let lagAdvisorsDefrost = naviContract.DEFROST_AFTER_MONTHS();
 console.log('------------------->>  lagAdvisorsDefrost = ' + lagAdvisorsDefrost)
 
-let reserveAndTeamDefrostFactor = naviContract.getReserveAndTeamDefrostFactor();
+let reserveAndTeamDefrostFactor = naviContract.DEFROST_FACTOR_TEAMANDADV();
 console.log('------------------->>  reserveAndTeamDefrostFactor = ' + reserveAndTeamDefrostFactor)
 
 
@@ -71,9 +73,9 @@ if(canDefrost == true)
     console.log('NUM ACCOUNTS = ' + vAccounts.length)
 
 
-    let vaddr = []
-    let vamounts = []
-    let vclasses = []
+    var vaddr = []
+    var vamounts = []
+    var vclasses = []
     for(i=0;i<vAccounts.length;i++){
         let vv = vAccounts[i].split(",");
         if(vv.length == 3){
@@ -94,7 +96,8 @@ if(canDefrost == true)
 
 function estimateGas(dataparam){
 
-	let estimatedGas = web3.eth.estimateGas({data: dataparam})
+	let estimatedGas = web3.eth.estimateGas({data: dataparam, from: web3.eth.accounts[0], to: contractAddress})
+        estimateGas = parseInt(estimateGas + estimateGas * 0.8)
     	gasLimit = web3.eth.getBlock("latest").gasLimit
 	    gasOk=0 
     	if(estimatedGas  < gasLimit){
@@ -110,9 +113,9 @@ function tryDefrostReserveAndTeam() {
         console.log("into tryDefrostReserveAndTeam()");
         // Reserve And Team -------------------------------------
         dataparam = naviContract.defrostReserveAndTeamTokens.getData()
-        // let gasOk = estimateGas(dataparam) * ;
+        let gas = estimateGas(dataparam)
 
-        naviContract.defrostReserveAndTeamTokens( { gas: 999000 },  function(error, result){
+        naviContract.defrostReserveAndTeamTokens( { gas:  web3.eth.getBlock("latest").gasLimit},  function(error, result){
             if (!error) {
                 console.log("defrostReserveAndTeamTokens OK:" + result);  // OK
                 waitForBlock(result, false);
@@ -153,7 +156,7 @@ let cntToDefrost =0;
 let cntDefrosted =0;
 function checkDefrostedReserveAndTeam() {
 
-	let blockTimestamp = naviContract.getBlockTimestamp();
+	let blockTimestamp = web3.eth.getBlock('latest').timestamp;
     let defrostedLogFile = DEFROSTED_LOG_ROOT + 'defrosted_reserve_and_team_' + blockTimestamp + '.txt'
     fs.appendFileSync(defrostedLogFile, blockTimestamp + '\n');
 
@@ -162,11 +165,11 @@ function checkDefrostedReserveAndTeam() {
         if(classInvestor === 1){ // reserve and team
             let addr = vaddr[i];
             cntToDefrost++;
-            naviContract.getAddressAndBalance(addr, function(error, result){
+            naviContract.balanceOf(addr, function(error, result){
                 if (!error) 
                 {
-		            icedaddr = result[0];
-                    amount = result[1];
+		            icedaddr = addr;
+                    amount = result;
                     vDefrostItems[icedaddr] = amount;
                     cntDefrosted++;
                     console.log('RESERVEandTEAM => ' + icedaddr + " => amount defrosted: " + amount);     

@@ -14,7 +14,7 @@ contract('NaviToken', function(accounts) {
 
   it("should retrieve NaviToken owner balance (account[0])", function() {
     return NaviToken.deployed().then(function(instance) {
-      return instance.getAddressBalance.call(accounts[0]);
+      return instance.balanceOf.call(accounts[0]);
     }).then(function(balance) {
       console.log("balance accounts[0] = " + balance);
       assert.equal(balance, '2e+26', "owner balance amount error");
@@ -23,7 +23,7 @@ contract('NaviToken', function(accounts) {
 
   it("should retrieve start ICO timestamp ", function() {
     return NaviToken.deployed().then(function(instance) {
-      return instance.getStartIcoTimestamp.call();
+      return instance.START_ICO_TIMESTAMP();
     }).then(function(startICOts) {
       console.log("startICOts = " + startICOts);
       let diff = Date.now() - startICOts;
@@ -87,14 +87,10 @@ contract('NaviToken', function(accounts) {
 
   it("should retrieve investor assigned tokens amount ", function() {
     return NaviToken.deployed().then(function(instance) {
-      return instance.getAddressAndBalance(vmyaddr[0]);
-    }).then(function(vret) {
-      investorAddress = vret[0]; 
-      investorAmount = vret[1];
-      console.log("investor address = " + investorAddress);
-      console.log("investor amount = " + investorAmount);
-      assert.equal(investorAddress, vmyaddr[0], "Error: assigned investorAddress mismatch");
-      assert.equal(investorAmount, '1.5e+22', "Error: assigned investorAmount mismatch");
+      return instance.balanceOf(vmyaddr[0]);
+    }).then(function(balance) {
+      console.log("investor amount = " + balance);
+      assert.equal(balance, '1.5e+22', "Error: assigned investorAmount mismatch");
     });
   });
 
@@ -116,12 +112,10 @@ contract('NaviToken', function(accounts) {
       web3.currentProvider.send({jsonrpc: "2.0", method: "evm_increaseTime", params: [MONTHS_IN_SECCONDS*29], id: 1});
       return instance.defrostReserveAndTeamTokens();
     }).then(function(){
-      return theInstance.getAddressAndBalance(vmyaddr[1]);
-    }).then(function(balanceAndAddress){
-      teamAddress = balanceAndAddress[0];
-      teamAmount = balanceAndAddress[1].toNumber();
-      console.log("team amount = " + teamAmount);
-      assert.equal(teamAmount, '2e+22', "Error: defrosted team tokens mismatch");
+      return theInstance.balanceOf(vmyaddr[1]);
+    }).then(function(balance){
+      console.log("team amount = " + balance.toNumber());
+      assert.equal(balance, '2e+22', "Error: defrosted team tokens mismatch");
       return theInstance.elapsedMonthsFromICOStart.call();
     }).then(function(elapsedMonths) {
       console.log("elapsedMonths from ICO start = " + elapsedMonths);
@@ -135,12 +129,10 @@ contract('NaviToken', function(accounts) {
       theInstance = instance;
       return instance.defrostAdvisorsTokens();
     }).then(function(){
-      return theInstance.getAddressAndBalance(vmyaddr[2]);
-    }).then(function(balanceAndAddress){
-      teamAddress = balanceAndAddress[0];
-      teamAmount = balanceAndAddress[1].toNumber();
-      console.log("advisor amount = " + teamAmount);
-      assert.equal(teamAmount, '2.5e+22', "Error: defrosted advisor tokens mismatch");
+      return theInstance.balanceOf(vmyaddr[2]);
+    }).then(function(balance){
+      console.log("advisor amount = " + balance.toNumber());
+      assert.equal(balance, '2.5e+22', "Error: defrosted advisor tokens mismatch");
     });
   });
 

@@ -3,8 +3,8 @@ const fs = require('fs');
 let crypto = require('crypto');
 
 // LOAD PARAMETERS --------------------------------
-const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
-const NUMACCOUNTS_FILEPATH = path.resolve(__dirname) + '/PARAMS/num_accounts_2_create.txt'
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/ethereum_node.txt'
+const NUMACCOUNTS_FILEPATH = path.resolve(__dirname) + '/../PARAMS/num_accounts_2_create.txt'
 let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
 let numAccounts2Create = require('fs').readFileSync(NUMACCOUNTS_FILEPATH, 'utf-8')
 console.log('urlEthereumNode = ' + urlEthereumNode)
@@ -21,8 +21,8 @@ if(web3.eth.accounts.length <=1){
 }
 console.log('...num accounts OK')
 
-const GENERATED_ACCOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt';
-const GENERATED_NUMTOKENS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_number_of_tokens.txt'
+const GENERATED_ACCOUNTS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_input_accounts_amounts.txt';
+const GENERATED_NUMTOKENS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_number_of_tokens.txt'
 
 let arrayAccounts = []
 

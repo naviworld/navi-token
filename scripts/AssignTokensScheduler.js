@@ -9,12 +9,12 @@ function AssignObject(chunkSize, fpath, interval, contractaddr, pwd) {
     this.accountpwd = pwd
 }
 
-const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
-const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
-const CHUNKSIZE_FILEPATH = path.resolve(__dirname) + '/PARAMS/chunk_size.txt'
-const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/generated_input_accounts_amounts.txt'
-const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/PARAMS/assign_interval_sec.txt'
-const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/ethereum_node.txt'
+const PWD_FILEPATH = path.resolve(__dirname) + '/../PARAMS/owner_pwd.txt'
+const CHUNKSIZE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/chunk_size.txt'
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/generated_input_accounts_amounts.txt'
+const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/../PARAMS/assign_interval_sec.txt'
+const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/smart-contract-address.txt'
 
 let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
 let ownerPassword = require('fs').readFileSync(PWD_FILEPATH, 'utf-8')
@@ -35,17 +35,17 @@ objAssignParams = new AssignObject(chunkSize,ACCOUNTSAMOUNTS_FILEPATH,assignInte
 
 console.log('contractaddress =  ' + objAssignParams.contractaddress + ' owner pwd = ' + objAssignParams.accountpwd );
 
-const NaviToken = require('./build/contracts/NaviToken.json');
+const NaviToken = require('./../build/contracts/NaviToken.json');
 const Web3 = require('web3');
 web3 = new Web3(new Web3.providers.HttpProvider(urlEthereumNode))
 
-let ACTIONS_PATH = "./ACTIONS"
-let LOGS_PATH = "./LOGS/"
+let ACTIONS_PATH = "./../ACTIONS"
+let LOGS_PATH = "./../LOGS/"
 
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 console.log('naviContract = ' + naviContract)
 console.log('abi = ' + NaviToken.abi)
-naviContract.getAddressBalance( web3.eth.accounts[0], function(error, result){
+naviContract.balanceOf( web3.eth.accounts[0], function(error, result){
     if (!error) {
         console.log("OWNER: getAddressBalance worked : " + result);          
     } else {
@@ -141,10 +141,13 @@ function sendAssignChunkToSmartContract(contractAddress, accountPwd, vaddr, vamo
 
     dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass)
     //console.log("dataparam = " + dataparam );
+    
     console.log("estimating gas... ");
-    let estimatedGas = web3.eth.estimateGas({data: dataparam, gas: 155000})    
+    let estimatedGas = web3.eth.estimateGas({from: web3.eth.accounts[0], 
+                                             to: contractAddress,
+                                             data: dataparam})    
     console.log("estimate = " + estimatedGas );
-    estimatedGas = estimatedGas * chunkSize + 15000;
+    estimatedGas = parseInt(estimatedGas + estimatedGas*0.1);
 
     gasLimit = web3.eth.getBlock("latest").gasLimit
     console.log("gasLimit = " + gasLimit);

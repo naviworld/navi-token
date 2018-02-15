@@ -2,13 +2,13 @@ const path = require('path');
 const fs = require('fs');
 
 
-const NaviToken = require('./build/contracts/NaviToken.json');
+const NaviToken = require('./../build/contracts/NaviToken.json');
 const Web3 = require('web3');
 
 // LOAD PARAMETERS --------------------------------
-const ETHNODE_FILEPATH = path.resolve(__dirname) + '/PARAMS/ethereum_node.txt'
-const PWD_FILEPATH = path.resolve(__dirname) + '/PARAMS/owner_pwd.txt'
-const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/OUTPUTS/smart-contract-address.txt'
+const ETHNODE_FILEPATH = path.resolve(__dirname) + '/../PARAMS/ethereum_node.txt'
+const PWD_FILEPATH = path.resolve(__dirname) + '/../PARAMS/owner_pwd.txt'
+const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../OUTPUTS/smart-contract-address.txt'
 
 // set parameters -------------------------------------------------
 let urlEthereumNode = require('fs').readFileSync(ETHNODE_FILEPATH, 'utf-8')
@@ -32,11 +32,11 @@ let addressToRetrieveClass2 = '0xf17f52151ebef6c7334fad080c5704d77216b732';
 let addressToRetrieveClass0 = '0x0f4f2ac550a1b4e2280d04c21cea7ebd822934b5';
 let addressToRetrieveClass1 = '0x0d1d4e623d10f9fba5db95830f7d3839406c6af2';
 
-naviContract.getAddressAndBalance.call(addressToRetrieveClass1, function(error, result){
+naviContract.balanceOf.call(addressToRetrieveClass1, function(error, result){
     if (!error) {
 
-        retAddress = result[0];
-        retAmount = result[1];
+        retAddress = addressToRetrieveClass1;
+        retAmount = result;
 
         console.log("getAddressBalance called : " + retAmount + " tokens found for " + retAddress); 
 
