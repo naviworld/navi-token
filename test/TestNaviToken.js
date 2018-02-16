@@ -17,7 +17,7 @@ contract('NaviToken', function(accounts) {
       return instance.balanceOf.call(accounts[0]);
     }).then(function(balance) {
       console.log("balance accounts[0] = " + balance);
-      assert.equal(balance, '2e+26', "owner balance amount error");
+      assert.equal(balance, '1e+26', "owner balance amount error");
     });
   });  
 

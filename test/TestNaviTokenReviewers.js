@@ -65,7 +65,7 @@ contract('NaviToken', accounts => {
         await revert(snapshotId);
     });
 
-    it("#1 defrost 1/30 of advisor's tokens", async () => {
+    it("#1 defrost advisor's tokens", async () => {
         const token = await NaviToken.new();
         const addresses = [
             accounts[1]
@@ -115,7 +115,7 @@ contract('NaviToken', accounts => {
             accounts[3],
             accounts[4]
         ];
-        const amounts = [300000000, 200000000, 200000000, 100000000]; // 8000'000'000 tokens
+        const amounts = [300000000, 200000000, 200000000, 200000000]; // 900'000'000 tokens
         const classes = [0, 0, 1, 2];
 
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -173,13 +173,6 @@ contract('NaviToken', accounts => {
         const classes = [0, 1, 2];
 
         await token.batchAssignTokens(addresses, amounts, classes).should.be.eventually.rejected;
-/*
-        await increaseTime(months(36));
-        await token.defrostReserveAndTeamTokens();
-        await token.defrostAdvisorsTokens();
-
-        await token.assignedSupply().should.eventually.bignumber.lessThan(1000000000 * TOKEN_DECIMALS_MULTIPLIER);
-  */
     });
 
     it('#6 check totalSupply', async () => {
