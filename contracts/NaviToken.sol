@@ -15,7 +15,7 @@ contract NaviToken is StandardToken, Ownable {
 
     uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
     // Freeze duration for Advisors accounts
-    // uint256 public constant START_ICO_TIMESTAMP   = 1501595111;  // line to decomment for the PROD before the main net deployment
+    // uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // line to decomment for the PROD before the main net deployment
     uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 
     uint256 public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
@@ -129,7 +129,7 @@ contract NaviToken is StandardToken, Ownable {
                     balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
                     mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
                 } else {
-                    balances[currentAddress] = amountToDefrost;
+                    balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
                     mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
                 }
             }
