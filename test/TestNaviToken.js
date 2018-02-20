@@ -59,15 +59,6 @@ contract('NaviToken', function(accounts) {
     });
   });
 
-  it("should get stopDefrost value false", function() {
-    return NaviToken.deployed().then(function(instance) {
-      return instance.stopDefrost();
-    }).then(function(stopD) {
-      console.log("stopDefrost = " + stopD);
-      assert.equal(stopD, false, "Error: stopDefrost = true at the beginning of ICO");
-    });
-  });
-
   const vmyaddr = [
      '0xffff2828eeee4545dddd0808cccc7777bbbb0000',
      '0xffff2828eeee4545dddd0808cccc7777bbbb1111',
@@ -79,9 +70,6 @@ contract('NaviToken', function(accounts) {
   it("should assign tokens to three address (one investor, one team&reserve, one advisor)", function() {
     return NaviToken.deployed().then(function(instance) {
       return instance.batchAssignTokens(vmyaddr,vmyamount,vmyclass);
-    }).then(function(stop) {
-      //console.log("stopDefrost = " + stop);
-      //assert.equal(stopDefrost, false, "Error: stopDefrost true at the beginning of ICO");
     });
   });
 
@@ -135,42 +123,5 @@ contract('NaviToken', function(accounts) {
       assert.equal(balance, '2.5e+22', "Error: defrosted advisor tokens mismatch");
     });
   });
-
-
-  it("should set stopDefrost value to true", function() {
-    let theInstance;
-    return NaviToken.deployed().then(function(instance) {
-      theInstance = instance;
-      console.log("setStopDefrost() ... ");
-      return instance.setStopDefrost();
-    }).then(function() {
-      console.log("ask stopDefrost value ... ");
-      return theInstance.stopDefrost();
-    }).then(function(stopD2) {
-      console.log("stopDefrost retreved shuld be true = " + stopD2);
-      assert.equal(stopD2, true, "Error: stopDefrost false after being set to false");
-    });
-  });
-
-  it("should defrost after stopDefrost", function() {
-    return NaviToken.deployed().then(function(instance) {
-      console.log("defrostAdvisorsTokens() ... ");
-      return instance.defrostAdvisorsTokens.call();
-    }).then(function() {
-      assert.equal(true, false, "Error: defrost available after stopDefrost");
-    }).catch(function(e) {
-      //
-    })
-  });
-
-  /*it("should retrieve stopDefrost value = true", function() {
-    return NaviToken.deployed().then(function(instance) {
-      return instance.stopDefrost();
-    }).then(function(stopD2) {
-      console.log("stopDefrost = " + stopD2);
-      assert.equal(stopD2, true, "Error: stopDefrost false after being set to false");
-    });
-  });*/
-
 
 });

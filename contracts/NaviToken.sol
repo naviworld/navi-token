@@ -5,6 +5,8 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract NaviToken is StandardToken, Ownable {
+    event Assigned(address indexed to, uint256 amount, uint256 defrostClass);
+    event AssignmentStopped();
 
 	using SafeMath for uint256;
 
@@ -35,7 +37,11 @@ contract NaviToken is StandardToken, Ownable {
 
     //Boolean to allow or not the initial assignement of token (batch)
     bool public batchAssignStopped = false;
-    bool public stopDefrost = false;
+
+    modifier canAssign() {
+        require(!batchAssignStopped);
+        _;
+    }
 
     function NaviToken() public {
         uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(10).div(100);  // 10% allocated and controlled by to NaviAddress
@@ -52,8 +58,7 @@ contract NaviToken is StandardToken, Ownable {
     * @param _addr address The address which you want to send tokens from
     * @param _amounts address The address which you want to transfer to
     */
-    function batchAssignTokens(address[] _addr, uint256[] _amounts, DefrostClass[] _defrostClass) public onlyOwner {
-        require(batchAssignStopped == false);
+    function batchAssignTokens(address[] _addr, uint256[] _amounts, DefrostClass[] _defrostClass) public onlyOwner canAssign {
         require(_addr.length == _amounts.length && _addr.length == _defrostClass.length);
         //Looping into input arrays to assign target amount to each given address
         for (uint256 index = 0; index < _addr.length; index++) {
@@ -77,6 +82,8 @@ contract NaviToken is StandardToken, Ownable {
                 icedBalancesAdvisors.push(toAddress);
                 mapIcedBalancesAdvisors[toAddress] = mapIcedBalancesAdvisors[toAddress].add(amount);
             }
+
+            Assigned(toAddress, amount, uint256(defrostClass));
         }
     }
 
@@ -86,7 +93,7 @@ contract NaviToken is StandardToken, Ownable {
 
     function canDefrostReserveAndTeam() view public returns (bool) {
         return elapsedMonthsFromICOStart() > DEFROST_AFTER_MONTHS &&
-               now > START_ICO_TIMESTAMP && stopDefrost == false;
+               now > START_ICO_TIMESTAMP;
     }
 
     function defrostReserveAndTeamTokens() public onlyOwner {
@@ -97,13 +104,14 @@ contract NaviToken is StandardToken, Ownable {
         if (monthsIndex > DEFROST_FACTOR_TEAMANDADV){
             monthsIndex = DEFROST_FACTOR_TEAMANDADV;
         }
+
         // Looping into the iced accounts
         for (uint256 index = 0; index < icedBalancesReserveAndTeam.length; index++) {
 
             address currentAddress = icedBalancesReserveAndTeam[index];
             uint256 amountTotal = icedBalancesReserveAndTeamFrosted[currentAddress].add(icedBalancesReserveAndTeamDefrosted[currentAddress]);
-            uint256 targetDeFrosted = monthsIndex.mul(amountTotal).div(DEFROST_FACTOR_TEAMANDADV);
-            uint256 amountToRelease = targetDeFrosted.sub(icedBalancesReserveAndTeamDefrosted[currentAddress]);
+            uint256 targetDefrosted = monthsIndex.mul(amountTotal).div(DEFROST_FACTOR_TEAMANDADV);
+            uint256 amountToRelease = targetDefrosted.sub(icedBalancesReserveAndTeamDefrosted[currentAddress]);
 
             if (amountToRelease > 0) {
                 icedBalancesReserveAndTeamFrosted[currentAddress] = icedBalancesReserveAndTeamFrosted[currentAddress].sub(amountToRelease);
@@ -115,8 +123,7 @@ contract NaviToken is StandardToken, Ownable {
 
     function canDefrostAdvisors() view public returns (bool) {
         return elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS &&
-               now > START_ICO_TIMESTAMP &&
-               stopDefrost == false;
+               now > START_ICO_TIMESTAMP;
     }
 
     function defrostAdvisorsTokens() public onlyOwner {
@@ -136,13 +143,8 @@ contract NaviToken is StandardToken, Ownable {
         }
     }
 
-    function stopBatchAssign() public onlyOwner {
-        require(batchAssignStopped == false);
+    function stopBatchAssign() public onlyOwner canAssign {
         batchAssignStopped = true;
+        AssignmentStopped();
     }
-
-    function setStopDefrost() public onlyOwner {
-        stopDefrost = true;
-    }
-
 }
