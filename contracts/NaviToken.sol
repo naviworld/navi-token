@@ -132,13 +132,8 @@ contract NaviToken is StandardToken, Ownable {
             address currentAddress = icedBalancesAdvisors[index];
             uint256 amountToDefrost = mapIcedBalancesAdvisors[currentAddress];
             if (amountToDefrost > 0) {
-                if (balances[currentAddress] > 0) {
-                    balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
-                    mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
-                } else {
-                    balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
-                    mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
-                }
+                balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
+                mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
             }
         }
     }
