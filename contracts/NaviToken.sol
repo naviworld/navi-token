@@ -7,6 +7,7 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 contract NaviToken is StandardToken, Ownable {
     event Assigned(address indexed to, uint256 amount, uint256 defrostClass);
     event AssignmentStopped();
+    event Defrosted(address indexed to, uint256 amount, uint256 defrostClass);
 
 	using SafeMath for uint256;
 
@@ -29,8 +30,8 @@ contract NaviToken is StandardToken, Ownable {
 
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
-    mapping (address => uint256) icedBalancesReserveAndTeamFrosted;
-    mapping (address => uint256) icedBalancesReserveAndTeamDefrosted;
+    mapping (address => uint256) mapIcedBalancesReserveAndTeamFrosted;
+    mapping (address => uint256) mapIcedBalancesReserveAndTeamDefrosted;
 
     address[] icedBalancesAdvisors;
     mapping (address => uint256) mapIcedBalancesAdvisors;
@@ -44,7 +45,7 @@ contract NaviToken is StandardToken, Ownable {
     }
 
     function NaviToken() public {
-        uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(10).div(100);  // 10% allocated and controlled by to NaviAddress
+        uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(10).div(100);  // 10% allocated and controlled by the company
         balances[owner]          = amountReserve;
         totalSupply              = amountReserve;
 
@@ -64,7 +65,7 @@ contract NaviToken is StandardToken, Ownable {
         for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
-            DefrostClass defrostClass = _defrostClass[index]; // 0=ico investor, 1=reserveandteam , 2=advisor
+            DefrostClass defrostClass = _defrostClass[index]; // 0=ico contributor, 1=reserveandteam , 2=advisor
             
             require(totalSupply.add(amount) <= MAX_NUM_NAVITOKENS);
 
@@ -75,8 +76,8 @@ contract NaviToken is StandardToken, Ownable {
             } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
-                icedBalancesReserveAndTeamFrosted[toAddress] = icedBalancesReserveAndTeamFrosted[toAddress].add(amount);
-                icedBalancesReserveAndTeamDefrosted[toAddress] = 0;
+                mapIcedBalancesReserveAndTeamFrosted[toAddress] = mapIcedBalancesReserveAndTeamFrosted[toAddress].add(amount);
+                mapIcedBalancesReserveAndTeamDefrosted[toAddress] = 0;
             } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
@@ -109,14 +110,16 @@ contract NaviToken is StandardToken, Ownable {
         for (uint256 index = 0; index < icedBalancesReserveAndTeam.length; index++) {
 
             address currentAddress = icedBalancesReserveAndTeam[index];
-            uint256 amountTotal = icedBalancesReserveAndTeamFrosted[currentAddress].add(icedBalancesReserveAndTeamDefrosted[currentAddress]);
+            uint256 amountTotal = mapIcedBalancesReserveAndTeamFrosted[currentAddress].add(mapIcedBalancesReserveAndTeamDefrosted[currentAddress]);
             uint256 targetDefrosted = monthsIndex.mul(amountTotal).div(DEFROST_FACTOR_TEAMANDADV);
-            uint256 amountToRelease = targetDefrosted.sub(icedBalancesReserveAndTeamDefrosted[currentAddress]);
+            uint256 amountToRelease = targetDefrosted.sub(mapIcedBalancesReserveAndTeamDefrosted[currentAddress]);
 
             if (amountToRelease > 0) {
-                icedBalancesReserveAndTeamFrosted[currentAddress] = icedBalancesReserveAndTeamFrosted[currentAddress].sub(amountToRelease);
-                icedBalancesReserveAndTeamDefrosted[currentAddress] = icedBalancesReserveAndTeamDefrosted[currentAddress].add(amountToRelease);
+                mapIcedBalancesReserveAndTeamFrosted[currentAddress] = mapIcedBalancesReserveAndTeamFrosted[currentAddress].sub(amountToRelease);
+                mapIcedBalancesReserveAndTeamDefrosted[currentAddress] = mapIcedBalancesReserveAndTeamDefrosted[currentAddress].add(amountToRelease);
                 balances[currentAddress] = balances[currentAddress].add(amountToRelease);
+
+                Defrosted(currentAddress, amountToRelease, uint256(DefrostClass.ReserveAndTeam));
               }
         }
     }
@@ -134,6 +137,8 @@ contract NaviToken is StandardToken, Ownable {
             if (amountToDefrost > 0) {
                 balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
                 mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
+
+                Defrosted(currentAddress, amountToDefrost, uint256(DefrostClass.Advisor));
             }
         }
     }
