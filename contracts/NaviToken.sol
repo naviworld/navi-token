@@ -18,8 +18,8 @@ contract NaviToken is StandardToken, Ownable {
 
     uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
     // Freeze duration for Advisors accounts
-    // uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // line to decomment for the PROD before the main net deployment
-    uint256 public START_ICO_TIMESTAMP; // !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
+    // uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // TODO: line to uncomment for the PROD before the main net deployment
+    uint256 public START_ICO_TIMESTAMP; // TODO: !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 
     uint256 public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
     uint256 public constant DEFROST_AFTER_MONTHS = 6;
@@ -41,6 +41,7 @@ contract NaviToken is StandardToken, Ownable {
 
     modifier canAssign() {
         require(!batchAssignStopped);
+        require(elapsedMonthsFromICOStart() < 2);
         _;
     }
 
@@ -51,7 +52,7 @@ contract NaviToken is StandardToken, Ownable {
 
         // for test only: set START_ICO to contract creation timestamp
         // +600 => add 10 minutes
-        START_ICO_TIMESTAMP = now; // line to remove before the main net deployment
+        START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
     }
 
     /**
@@ -65,7 +66,7 @@ contract NaviToken is StandardToken, Ownable {
         for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
-            DefrostClass defrostClass = _defrostClass[index]; // 0=ico contributor, 1=reserveandteam , 2=advisor
+            DefrostClass defrostClass = _defrostClass[index]; // 0 = ico contributor, 1 = reserve and team , 2 = advisor
             
             require(totalSupply.add(amount) <= MAX_NUM_NAVITOKENS);
 

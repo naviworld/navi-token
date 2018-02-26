@@ -188,4 +188,25 @@ contract('NaviToken', accounts => {
 
         await token.balanceOf(accounts[1]).should.eventually.bignumber.equals(600000 * TOKEN_DECIMALS_MULTIPLIER);
     });
+
+    it('#8 try to assign after defrost', async () => {
+        const token = await NaviToken.new();
+
+        await token.batchAssignTokens([accounts[1]], [300000000], [1]);
+        // await token.stopBatchAssign(); // as if by chance forgot to perform
+
+        await increaseTime(months(7));
+        await token.defrostReserveAndTeamTokens();
+        await token.batchAssignTokens([accounts[2]], [100000000], [1]).should.eventually.be.rejected;
+    });
+
+    it('#9 try to assign after 2 month from ICO', async () => {
+        const token = await NaviToken.new();
+
+        await token.batchAssignTokens([accounts[1]], [300000000], [1]);
+        // await token.stopBatchAssign(); // as if by chance forgot to perform
+
+        await increaseTime(months(2));
+        await token.batchAssignTokens([accounts[2]], [100000000], [1]).should.eventually.be.rejected;
+    });
 });
