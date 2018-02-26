@@ -67,10 +67,10 @@ contract NaviToken is StandardToken, Ownable {
             address toAddress = _addr[index];
             uint amount = _amounts[index].mul(10 ** decimals);
             DefrostClass defrostClass = _defrostClass[index]; // 0 = ico contributor, 1 = reserve and team , 2 = advisor
-            
-            require(totalSupply.add(amount) <= MAX_NUM_NAVITOKENS);
 
             totalSupply = totalSupply.add(amount);
+            require(totalSupply <= MAX_NUM_NAVITOKENS);
+
             if (defrostClass == DefrostClass.Investor) {
                 // investor account
                 balances[toAddress] = balances[toAddress].add(amount);
@@ -78,7 +78,6 @@ contract NaviToken is StandardToken, Ownable {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
                 mapIcedBalancesReserveAndTeamFrosted[toAddress] = mapIcedBalancesReserveAndTeamFrosted[toAddress].add(amount);
-                mapIcedBalancesReserveAndTeamDefrosted[toAddress] = 0;
             } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
@@ -94,8 +93,7 @@ contract NaviToken is StandardToken, Ownable {
     }
 
     function canDefrostReserveAndTeam() view public returns (bool) {
-        return elapsedMonthsFromICOStart() > DEFROST_AFTER_MONTHS &&
-               now > START_ICO_TIMESTAMP;
+        return elapsedMonthsFromICOStart() > DEFROST_AFTER_MONTHS;
     }
 
     function defrostReserveAndTeamTokens() public onlyOwner {
@@ -121,13 +119,12 @@ contract NaviToken is StandardToken, Ownable {
                 balances[currentAddress] = balances[currentAddress].add(amountToRelease);
 
                 Defrosted(currentAddress, amountToRelease, uint256(DefrostClass.ReserveAndTeam));
-              }
+            }
         }
     }
 
     function canDefrostAdvisors() view public returns (bool) {
-        return elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS &&
-               now > START_ICO_TIMESTAMP;
+        return elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS;
     }
 
     function defrostAdvisorsTokens() public onlyOwner {
