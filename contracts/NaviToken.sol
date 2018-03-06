@@ -13,13 +13,12 @@ contract NaviToken is StandardToken, Ownable {
 
     /* Overriding some ERC20 variables */
     string public constant name      = "NaviToken";
-    string public constant symbol    = "NVT";
+    string public constant symbol    = "NAVI";
     uint256 public constant decimals = 18;
 
     uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
-    // Freeze duration for Advisors accounts
-    // uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // TODO: line to uncomment for the PROD before the main net deployment
-    uint256 public START_ICO_TIMESTAMP; // TODO: !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
+    uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // TODO: line to uncomment for the PROD before the main net deployment
+    //uint256 public START_ICO_TIMESTAMP; // TODO: !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 
     uint256 public constant MONTH_IN_MINUTES = 43200; // month in minutes  (1month = 43200 min)
     uint256 public constant DEFROST_AFTER_MONTHS = 6;
@@ -52,7 +51,7 @@ contract NaviToken is StandardToken, Ownable {
 
         // for test only: set START_ICO to contract creation timestamp
         // +600 => add 10 minutes
-        START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
+        // START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
     }
 
     /**
