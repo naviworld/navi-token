@@ -14,9 +14,9 @@ contract NaviToken is StandardToken, Ownable {
     /* Overriding some ERC20 variables */
     string public constant name      = "NaviToken";
     string public constant symbol    = "NAVI";
-    uint256 public constant decimals = 18;
+    uint8 public constant decimals = 18;
 
-    uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** decimals;
+    uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** uint256(decimals);
     uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // TODO: line to uncomment for the PROD before the main net deployment
     //uint256 public START_ICO_TIMESTAMP; // TODO: !!! line to remove before the main net deployment (not constant for testing and overwritten in the constructor)
 
@@ -49,6 +49,8 @@ contract NaviToken is StandardToken, Ownable {
         balances[owner]          = amountReserve;
         totalSupply              = amountReserve;
 
+        Transfer(address(0), owner, amountReserve);
+
         // for test only: set START_ICO to contract creation timestamp
         //START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
     }
@@ -63,7 +65,7 @@ contract NaviToken is StandardToken, Ownable {
         //Looping into input arrays to assign target amount to each given address
         for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
-            uint amount = _amounts[index].mul(10 ** decimals);
+            uint amount = _amounts[index].mul(10 ** uint256(decimals));
             DefrostClass defrostClass = _defrostClass[index]; // 0 = ico contributor, 1 = reserve and team , 2 = advisor
 
             totalSupply = totalSupply.add(amount);
@@ -72,6 +74,7 @@ contract NaviToken is StandardToken, Ownable {
             if (defrostClass == DefrostClass.Contributor) {
                 // contributor account
                 balances[toAddress] = balances[toAddress].add(amount);
+                Transfer(address(0), toAddress, amount);
             } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
@@ -116,6 +119,7 @@ contract NaviToken is StandardToken, Ownable {
                 mapIcedBalancesReserveAndTeamDefrosted[currentAddress] = mapIcedBalancesReserveAndTeamDefrosted[currentAddress].add(amountToRelease);
                 balances[currentAddress] = balances[currentAddress].add(amountToRelease);
 
+                Transfer(address(0), currentAddress, amountToRelease);
                 Defrosted(currentAddress, amountToRelease, uint256(DefrostClass.ReserveAndTeam));
             }
         }
@@ -134,6 +138,7 @@ contract NaviToken is StandardToken, Ownable {
                 balances[currentAddress] = balances[currentAddress].add(amountToDefrost);
                 mapIcedBalancesAdvisors[currentAddress] = mapIcedBalancesAdvisors[currentAddress].sub(amountToDefrost);
 
+                Transfer(address(0), currentAddress, amountToDefrost);
                 Defrosted(currentAddress, amountToDefrost, uint256(DefrostClass.Advisor));
             }
         }

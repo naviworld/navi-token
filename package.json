@@ -26,6 +26,6 @@
     "mocha": "^5.0.0",
     "solc": "^0.4.19",
     "web3": "0.20.0",
-    "zeppelin-solidity": "^1.5.0"
+    "zeppelin-solidity": "1.5.0"
   }
 }

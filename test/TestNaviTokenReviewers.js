@@ -46,6 +46,15 @@ const revert = (id) => new Promise((resolve, reject) => {
     );
 });
 
+function makePseudoAdress() {
+    var text = "";
+    var possible = "abcdef0123456789";
+    for (var i = 0; i < 40; i++)
+        text += possible.charAt(Math.floor(Math.random() *
+            possible.length));
+    return "0x" + text;
+}
+
 const seconds = (amount) => amount;
 const minutes = (amount) => amount * seconds(60);
 const hours = (amount) => amount * minutes(60);
@@ -230,4 +239,113 @@ contract('NaviToken', accounts => {
         await increaseTime(months(2));
         await token.batchAssignTokens([accounts[2]], [100000000], [1]).should.eventually.be.rejected;
     });
+
+    it('ReserveAndTeam Defrosting pass with 120 addresses', async () => {
+        const token = await NaviToken.new();
+        let addresses = [];
+        let amounts = [];
+        let classes = [];
+        for (let i = 0; i < 100; i++) {
+            addresses.push(makePseudoAdress());
+            amounts.push(1000);
+            classes.push(1);
+        }
+        await token.batchAssignTokens(addresses, amounts, classes);
+        addresses = [];
+        amounts = [];
+        classes = [];
+        for (let i = 0; i < 20; i++) {
+            addresses.push(makePseudoAdress());
+            amounts.push(1000);
+            classes.push(1);
+        }
+        await token.batchAssignTokens(addresses, amounts,
+            classes);
+        await increaseTime(months(7));
+        await token.defrostReserveAndTeamTokens();
+    });
+
+    // it('ReserveAndTeam Defrosting fail with 130 addresses', async () => {
+    //     const token = await NaviToken.new();
+    //     let addresses = [];
+    //     let amounts = [];
+    //     let classes = [];
+    //     for (let i = 0; i < 100; i++) {
+    //         addresses.push(makePseudoAdress());
+    //         amounts.push(1000);
+    //         classes.push(1);
+    //     }
+    //     await token.batchAssignTokens(addresses, amounts, classes);
+    //
+    //     addresses = [];
+    //     amounts = [];
+    //     classes = [];
+    //     for (let i = 0; i < 50; i++) {
+    //         addresses.push(makePseudoAdress());
+    //         amounts.push(1000);
+    //         classes.push(1);
+    //     }
+    //     await token.batchAssignTokens(addresses, amounts, classes);
+    //     await increaseTime(months(7));
+    //     await token.defrostReserveAndTeamTokens();
+    // });
+
+    it('Advisors Defrosting pass with 200 adresses', async () => {
+        const token = await NaviToken.new();
+        let addresses = [];
+        let amounts = [];
+        let classes = [];
+        for (let i = 0; i < 100; i++) {
+            addresses.push(makePseudoAdress());
+            amounts.push(1000);
+            classes.push(2);
+        }
+        await token.batchAssignTokens(addresses, amounts, classes);
+        addresses = [];
+        amounts = [];
+        classes = [];
+        for (let i = 0; i < 100; i++) {
+            addresses.push(makePseudoAdress());
+            amounts.push(1000);
+            classes.push(2);
+        }
+        await token.batchAssignTokens(addresses, amounts, classes);
+        await increaseTime(months(7));
+        await token.defrostAdvisorsTokens();
+    });
+
+    // it('Advisors Defrosting pass with 250 addresses', async () => {
+    //     const token = await NaviToken.new();
+    //     let addresses = [];
+    //     let amounts = [];
+    //     let classes = [];
+    //     for (let i = 0; i < 100; i++) {
+    //         addresses.push(makePseudoAdress());
+    //         amounts.push(1000);
+    //
+    //         classes.push(2);
+    //     }
+    //     await token.batchAssignTokens(addresses, amounts, classes);
+    //     addresses = [];
+    //     amounts = [];
+    //     classes = [];
+    //     for (let i = 0; i < 100; i++) {
+    //         addresses.push(makePseudoAdress());
+    //         amounts.push(1000);
+    //         classes.push(2);
+    //     }
+    //     await token.batchAssignTokens(addresses, amounts, classes);
+    //     addresses = [];
+    //     amounts = [];
+    //     classes = [];
+    //     for (let i = 0; i < 50; i++) {
+    //         addresses.push(makePseudoAdress());
+    //         amounts.push(1000);
+    //         classes.push(2);
+    //     }
+    //
+    //     await token.batchAssignTokens(addresses, amounts, classes);
+    //     await increaseTime(months(7));
+    //     await token.defrostAdvisorsTokens();
+    // });
 });
