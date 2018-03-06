@@ -54,11 +54,11 @@ for (let i=0; i<lines.length; i++) {
     let userAddress = vv[0];
     let userAmount = vv[1] * multDecimals; // decimals = 18
     dict[userAddress] = userAmount;    
-    let classInvestor = parseInt(vv[2]);
+    let contributionClass = parseInt(vv[2]);
 
-    console.log(userAddress  + " - classInvestor = " + classInvestor )
+    console.log(userAddress  + " - contributionClass = " + contributionClass )
 
-    if(classInvestor == 0){ // not iced
+    if(contributionClass == 0){ // not iced
         
         totalAssignedOnFile += parseInt(vv[1]);
         naviContract.balanceOf.call(userAddress, function(error, result){
@@ -73,7 +73,7 @@ for (let i=0; i<lines.length; i++) {
                     let strOk = retAddress + "  -  AMOUNT MATCHING OK = " + retAmount + " ->  numTokensAssigned = " + totalAssigned;
                     vmatchOK.push(strOk)
                 }else{
-                    let strErr = "!!!!  INVESTOR INVESTOR ERROR ERROR ERROR:  " + dict[retAddress] + "  -  amount MISMATCH ERROR = " + retAmount;
+                    let strErr = "!!!!  CONTRIBUTOR ERROR ERROR ERROR:  " + dict[retAddress] + "  -  amount MISMATCH ERROR = " + retAmount;
                     console.log(strErr)
                     vmatchErr.push(strErr)
                 }

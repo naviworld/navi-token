@@ -165,8 +165,8 @@ function checkDefrostedReserveAndTeam() {
     fs.appendFileSync(defrostedLogFile, blockTimestamp + '\n');
 
     for(i=0;i<vaddr.length;i++){
-        let classInvestor = vclasses[i];
-        if(classInvestor === 1){ // reserve and team
+        let contributionClass = vclasses[i];
+        if(contributionClass === 1){ // reserve and team
             let addr = vaddr[i];
             cntToDefrost++;
             naviContract.balanceOf(addr, function(error, result){
@@ -207,8 +207,8 @@ let Decimals = 1000000000000000000
 function checkDefrosted_RESERVEandTEAM_TokenAmounts() {
         
         for(i=0;i<vaddr.length;i++){
-            let classInvestor = vclasses[i];
-            if(classInvestor === 1){ // equity
+            let contributionClass = vclasses[i];
+            if(contributionClass === 1){ // equity
                 let icedaddr = vaddr[i];
                 let amountToDefrost = vamounts[i] * (monthsElapsed-lagReserveAndTeamDefrost) / reserveAndTeamDefrostFactor;
                 let amountDefrosted = Math.round(vDefrostItems[icedaddr] /  Decimals)

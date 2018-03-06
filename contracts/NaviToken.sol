@@ -25,7 +25,7 @@ contract NaviToken is StandardToken, Ownable {
 
     uint256 public constant DEFROST_FACTOR_TEAMANDADV = 30;
 
-    enum DefrostClass {Investor, ReserveAndTeam, Advisor}
+    enum DefrostClass {Contributor, ReserveAndTeam, Advisor}
 
     // Fields that can be changed by functions
     address[] icedBalancesReserveAndTeam;
@@ -50,8 +50,7 @@ contract NaviToken is StandardToken, Ownable {
         totalSupply              = amountReserve;
 
         // for test only: set START_ICO to contract creation timestamp
-        // +600 => add 10 minutes
-        // START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
+        //START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
     }
 
     /**
@@ -70,8 +69,8 @@ contract NaviToken is StandardToken, Ownable {
             totalSupply = totalSupply.add(amount);
             require(totalSupply <= MAX_NUM_NAVITOKENS);
 
-            if (defrostClass == DefrostClass.Investor) {
-                // investor account
+            if (defrostClass == DefrostClass.Contributor) {
+                // contributor account
                 balances[toAddress] = balances[toAddress].add(amount);
             } else if (defrostClass == DefrostClass.ReserveAndTeam) {
                 // Iced account. The balance is not affected here

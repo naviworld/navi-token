@@ -67,18 +67,18 @@ contract('NaviToken', function(accounts) {
   const vmyamount = [15000, 20000, 25000];
   const vmyclass = [0, 1, 2];
 
-  it("should assign tokens to three address (one investor, one team&reserve, one advisor)", function() {
+  it("should assign tokens to three address (one contributor, one team&reserve, one advisor)", function() {
     return NaviToken.deployed().then(function(instance) {
       return instance.batchAssignTokens(vmyaddr,vmyamount,vmyclass);
     });
   });
 
-  it("should retrieve investor assigned tokens amount ", function() {
+  it("should retrieve contributor assigned tokens amount ", function() {
     return NaviToken.deployed().then(function(instance) {
       return instance.balanceOf(vmyaddr[0]);
     }).then(function(balance) {
-      console.log("investor amount = " + balance);
-      assert.equal(balance, '1.5e+22', "Error: assigned investorAmount mismatch");
+      console.log("contributor amount = " + balance);
+      assert.equal(balance, '1.5e+22', "Error: assigned contributor amount mismatch");
     });
   });
 

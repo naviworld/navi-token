@@ -129,7 +129,7 @@ contract('NaviToken', accounts => {
 
         await increaseTime(months(6));
         for (let i = 1; i <= 30; i++) {
-            await increaseTime(months(1));
+            await increaseTime(months(1) + seconds(1));
             await token.defrostReserveAndTeamTokens();
             await token.balanceOf(addresses[2])
                 .should.eventually.bignumber.equals(

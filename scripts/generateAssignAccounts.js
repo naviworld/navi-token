@@ -66,7 +66,7 @@ for(let a = 0; a < Lacc ;a++){
       console.log(cnt + " - true account: " +  web3.eth.accounts[a])
       strline = web3.eth.accounts[a] +separator +amount + separator + '1'
     }else{
-      // 6-9 = INVESTOR
+      // 6-9 = CONTRIBUTORS
       console.log(cnt + " - true account: " +  web3.eth.accounts[a])
       strline = web3.eth.accounts[a] +separator +amount + separator + '0'
     }

@@ -54,11 +54,11 @@ for (let i=0; i<lines.length; i++) {
     let userAddress = vv[0];
     let userAmount = vv[1] * multDecimals; // decimals = 18
     dict[userAddress] = userAmount;    
-    let classInvestor = parseInt(vv[2]);
+    let contributionClass = parseInt(vv[2]);
 
-    console.log(userAddress  + " - classInvestor = " + classInvestor )
+    console.log(userAddress  + " - contributionClass = " + contributionClass )
 
-    if(classInvestor > 0 ){ // iced only (reserve and team + advisors)
+    if(contributionClass > 0 ){ // iced only (reserve and team + advisors)
         
         totalAssignedOnFile += parseInt(vv[1]);
         naviContract.balanceOf.call(userAddress, function(error, result){
