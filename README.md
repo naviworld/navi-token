@@ -28,7 +28,7 @@ Node v7.6 or higher
 	- account[>=10] are fare address randomly assigned to ona of the trees classes (TEAM/RESERVE - ADVISORS - CONTRIBUTORS)
 	please note that account[>=10] have no private keys: if you want to test token transfer (locally or on a wallet) you must use one of 10 first accounts
 
-- launch the AssignTokensScheduler.js             to dispatch token to all contributors
+- launch the assignTokens.js             to dispatch token to all contributors
 - launch the verifyBatchAssignContributor.js   to check that token amounts are correctly assigned to CONTRIBUTORS
 - launch the TryDefrostAdvisors.js	          to defrost advisors tokens ( only frosted for 6 month )
 - launch the TryDefrostReserveAndTeam.js         to defrost TEAM/RESERVE tokens ( frosted for 6 month and then vested for 30 month )

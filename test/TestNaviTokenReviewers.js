@@ -314,6 +314,13 @@ contract('NaviToken', accounts => {
         await token.defrostAdvisorsTokens();
     });
 
+    it('ETH payments are not acceptable', async () => {
+        const token = await NaviToken.new();
+        await token.send(web3.toWei(1, 'ether')).should.be.rejectedWith('revert');
+    });
+
+
+
     // it('Advisors Defrosting pass with 250 addresses', async () => {
     //     const token = await NaviToken.new();
     //     let addresses = [];

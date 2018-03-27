@@ -97,7 +97,7 @@ contract NaviToken is StandardToken, Ownable {
         return elapsedMonthsFromICOStart() > DEFROST_AFTER_MONTHS;
     }
 
-    function defrostReserveAndTeamTokens() public onlyOwner {
+    function defrostReserveAndTeamTokens() public {
         require(canDefrostReserveAndTeam());
 
         uint256 monthsIndex = elapsedMonthsFromICOStart() - DEFROST_AFTER_MONTHS;
@@ -129,7 +129,7 @@ contract NaviToken is StandardToken, Ownable {
         return elapsedMonthsFromICOStart() >= DEFROST_AFTER_MONTHS;
     }
 
-    function defrostAdvisorsTokens() public onlyOwner {
+    function defrostAdvisorsTokens() public {
         require(canDefrostAdvisors());
         for (uint256 index = 0; index < icedBalancesAdvisors.length; index++) {
             address currentAddress = icedBalancesAdvisors[index];
@@ -147,5 +147,9 @@ contract NaviToken is StandardToken, Ownable {
     function stopBatchAssign() public onlyOwner canAssign {
         batchAssignStopped = true;
         AssignmentStopped();
+    }
+
+    function() public payable {
+        revert();
     }
 }
