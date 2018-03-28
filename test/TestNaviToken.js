@@ -1,10 +1,14 @@
+const decimals = 18;
+
+const makeTokens = amount => amount * 10 ** decimals;
+
 const MONTHS_IN_SECCONDS = 60*60*24*30;
 const NaviToken = artifacts.require("./NaviToken.sol");
 
 contract('NaviToken', function(accounts) {
   it("should retrieve max number of NaviToken", function() {
     return NaviToken.deployed().then(function(instance) {
-      
+
       return instance.MAX_NUM_NAVITOKENS();
     }).then(function(maxnum) {
       console.log("Max Num Navi Tokens = " + maxnum);
@@ -19,7 +23,7 @@ contract('NaviToken', function(accounts) {
       console.log("balance accounts[0] = " + balance);
       assert.equal(balance, '1e+26', "owner balance amount error");
     });
-  });  
+  });
 
   it("should retrieve start ICO timestamp ", function() {
     return NaviToken.deployed().then(function(instance) {
@@ -64,7 +68,7 @@ contract('NaviToken', function(accounts) {
      '0xffff2828eeee4545dddd0808cccc7777bbbb1111',
      '0xffff2828eeee4545dddd0808cccc7777bbbb2222',
   ];
-  const vmyamount = [15000, 20000, 25000];
+  const vmyamount = [makeTokens(15000), makeTokens(20000), makeTokens(25000)];
   const vmyclass = [0, 1, 2];
 
   it("should assign tokens to three address (one contributor, one team&reserve, one advisor)", function() {

@@ -1,5 +1,9 @@
 const BigNumber = web3.BigNumber;
 
+const TOKEN_DECIMALS_MULTIPLIER = 10**18;
+
+const makeTokens = amount => new BigNumber(amount).mul(TOKEN_DECIMALS_MULTIPLIER).floor();
+
 require('chai')
     .use(require("chai-bignumber")(BigNumber))
     .use(require('chai-as-promised'))
@@ -61,8 +65,6 @@ const hours = (amount) => amount * minutes(60);
 const days = (amount) => amount * hours(24);
 const months = (amount) => amount * days(30);
 
-const TOKEN_DECIMALS_MULTIPLIER = 10**18;
-
 contract('NaviToken', accounts => {
     let snapshotId;
 
@@ -79,7 +81,7 @@ contract('NaviToken', accounts => {
         const addresses = [
             accounts[1]
         ];
-        const amounts = [100000000]; // 100'000'000 tokens
+        const amounts = [makeTokens(100000000)]; // 100'000'000 tokens
         const classes = [2];
 
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -90,8 +92,7 @@ contract('NaviToken', accounts => {
         await token.defrostAdvisorsTokens();
 
         await token.balanceOf(addresses[0])
-            .should.eventually.bignumber.be.equals(
-                new BigNumber(amounts[0]).mul(TOKEN_DECIMALS_MULTIPLIER).floor());
+            .should.eventually.bignumber.be.equals(amounts[0]);
     });
 
     it('#2 defrost several times in one month', async () => {
@@ -99,7 +100,7 @@ contract('NaviToken', accounts => {
         const addresses = [
             accounts[1],
         ];
-        const amounts = [100000000]; // 100'000'000 tokens
+        const amounts = [makeTokens(100000000)]; // 100'000'000 tokens
         const classes = [1];
 
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -112,8 +113,8 @@ contract('NaviToken', accounts => {
             await token.defrostReserveAndTeamTokens();
             await token.balanceOf(addresses[0])
                 .should.eventually.bignumber.equals(
-                    new BigNumber(amounts[0]).div(30).mul(TOKEN_DECIMALS_MULTIPLIER).floor());
-        }
+                    amounts[0].div(30).floor());
+}
     });
 
     it('#3 distribution lifecycle', async () => {
@@ -124,13 +125,13 @@ contract('NaviToken', accounts => {
             accounts[3],
             accounts[4]
         ];
-        const amounts = [300000000, 200000000, 200000000, 200000000]; // 900'000'000 tokens
+        const amounts = [makeTokens(300000000), makeTokens(200000000), makeTokens(200000000), makeTokens(200000000)]; // 900'000'000 tokens
         const classes = [0, 0, 1, 2];
 
         await token.batchAssignTokens(addresses, amounts, classes);
 
-        await token.balanceOf(addresses[0]).should.eventually.bignumber.equals(amounts[0] * TOKEN_DECIMALS_MULTIPLIER);
-        await token.balanceOf(addresses[1]).should.eventually.bignumber.equals(amounts[1] * TOKEN_DECIMALS_MULTIPLIER);
+        await token.balanceOf(addresses[0]).should.eventually.bignumber.equals(amounts[0]);
+        await token.balanceOf(addresses[1]).should.eventually.bignumber.equals(amounts[1]);
         await token.balanceOf(addresses[2]).should.eventually.bignumber.be.zero;
         await token.balanceOf(addresses[3]).should.eventually.bignumber.be.zero;
 
@@ -142,7 +143,7 @@ contract('NaviToken', accounts => {
             await token.defrostReserveAndTeamTokens();
             await token.balanceOf(addresses[2])
                 .should.eventually.bignumber.equals(
-                    new BigNumber(amounts[2]).mul(i).div(30).mul(TOKEN_DECIMALS_MULTIPLIER).floor());
+                    new BigNumber(amounts[2]).mul(i).div(30).floor());
         }
     });
 
@@ -151,7 +152,7 @@ contract('NaviToken', accounts => {
         const addresses = [
             accounts[1]
         ];
-        const amounts = [100000000];
+        const amounts = [makeTokens(100000000)];
         const classes = [1];
         await token.batchAssignTokens(addresses, amounts, classes);
 
@@ -159,7 +160,7 @@ contract('NaviToken', accounts => {
         await token.defrostReserveAndTeamTokens();
         await token.balanceOf(addresses[0])
             .should.eventually.bignumber.equals(
-                new BigNumber(amounts[0]).div(30).mul(TOKEN_DECIMALS_MULTIPLIER).floor());
+                new BigNumber(amounts[0]).div(30).floor());
 
         await token.transfer(accounts[0], await token.balanceOf(addresses[0]), {from: addresses[0]});
 
@@ -168,7 +169,7 @@ contract('NaviToken', accounts => {
 
         await token.balanceOf(addresses[0])
             .should.eventually.bignumber.equals(
-                new BigNumber(amounts[0]).div(30).mul(TOKEN_DECIMALS_MULTIPLIER).floor());
+                new BigNumber(amounts[0]).div(30).floor());
     });
 
     it('#5 distribute more tokens than MAX_NUM_NAVITOKENS', async () => {
@@ -178,7 +179,7 @@ contract('NaviToken', accounts => {
             accounts[2],
             accounts[3]
         ];
-        const amounts = [1000000000, 200000000, 100000000]; // 1'300'000'000 tokens
+        const amounts = [makeTokens(1000000000), makeTokens(200000000), makeTokens(100000000)]; // 1'300'000'000 tokens
         const classes = [0, 1, 2];
 
         await token.batchAssignTokens(addresses, amounts, classes).should.be.eventually.rejected;
@@ -192,27 +193,27 @@ contract('NaviToken', accounts => {
     it('#7 double assignment', async () => {
         const token = await NaviToken.new();
 
-        await token.batchAssignTokens([accounts[1]], [100000], [0]);
-        await token.batchAssignTokens([accounts[1]], [500000], [0]);
+        await token.batchAssignTokens([accounts[1]], [makeTokens(100000)], [0]);
+        await token.batchAssignTokens([accounts[1]], [makeTokens(500000)], [0]);
 
-        await token.balanceOf(accounts[1]).should.eventually.bignumber.equals(600000 * TOKEN_DECIMALS_MULTIPLIER);
+        await token.balanceOf(accounts[1]).should.eventually.bignumber.equals(makeTokens(100000).add(makeTokens(500000)));
     });
 
     it('#8 try to assign after defrost', async () => {
         const token = await NaviToken.new();
 
-        await token.batchAssignTokens([accounts[1]], [300000000], [1]);
+        await token.batchAssignTokens([accounts[1]], [makeTokens(300000000)], [1]);
         // await token.stopBatchAssign(); // as if by chance forgot to perform
 
         await increaseTime(months(7));
         await token.defrostReserveAndTeamTokens();
-        await token.batchAssignTokens([accounts[2]], [100000000], [1]).should.eventually.be.rejected;
+        await token.batchAssignTokens([accounts[2]], [makeTokens(100000000)], [1]).should.eventually.be.rejected;
     });
 
     it('#9 defrost tokens after 40 month', async () => {
         const token = await NaviToken.new();
         const addresses = [accounts[1], accounts[2]];
-        const amounts = [300000000, 200000000]; // 900'000'000 tokens
+        const amounts = [makeTokens(300000000), makeTokens(200000000)]; // 900'000'000 tokens
         const classes = [1, 2];
 
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -224,20 +225,23 @@ contract('NaviToken', accounts => {
 
         await increaseTime(months(40));
         await token.defrostReserveAndTeamTokens();
-        await token.balanceOf(addresses[0]).should.eventually.bignumber.equal(amounts[0] * TOKEN_DECIMALS_MULTIPLIER);
+        await token.balanceOf(addresses[0]).should.eventually.bignumber.equal(amounts[0]);
 
         await token.defrostAdvisorsTokens();
-        await token.balanceOf(addresses[1]).should.eventually.bignumber.equal(amounts[1] * TOKEN_DECIMALS_MULTIPLIER);
+        await token.balanceOf(addresses[1]).should.eventually.bignumber.equal(amounts[1]);
     });
 
     it('#10 try to assign after 2 month from ICO', async () => {
         const token = await NaviToken.new();
 
-        await token.batchAssignTokens([accounts[1]], [300000000], [1]);
+        await token.batchAssignTokens([accounts[1]], [makeTokens(300000000)], [1]);
         // await token.stopBatchAssign(); // as if by chance forgot to perform
 
-        await increaseTime(months(2));
-        await token.batchAssignTokens([accounts[2]], [100000000], [1]).should.eventually.be.rejected;
+      await increaseTime(months(2) - seconds(1));
+      await token.batchAssignTokens([accounts[2]], [makeTokens(100000000)], [1]).should.eventually.be.fulfilled;
+
+        await increaseTime(months(2) + seconds(1));
+        await token.batchAssignTokens([accounts[2]], [makeTokens(100000000)], [1]).should.eventually.be.rejected;
     });
 
     it('ReserveAndTeam Defrosting pass with 120 addresses', async () => {
@@ -247,7 +251,7 @@ contract('NaviToken', accounts => {
         let classes = [];
         for (let i = 0; i < 100; i++) {
             addresses.push(makePseudoAdress());
-            amounts.push(1000);
+            amounts.push(makeTokens(1000));
             classes.push(1);
         }
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -256,7 +260,7 @@ contract('NaviToken', accounts => {
         classes = [];
         for (let i = 0; i < 20; i++) {
             addresses.push(makePseudoAdress());
-            amounts.push(1000);
+            amounts.push(makeTokens(1000));
             classes.push(1);
         }
         await token.batchAssignTokens(addresses, amounts,
@@ -297,7 +301,7 @@ contract('NaviToken', accounts => {
         let classes = [];
         for (let i = 0; i < 100; i++) {
             addresses.push(makePseudoAdress());
-            amounts.push(1000);
+            amounts.push(makeTokens(1000));
             classes.push(2);
         }
         await token.batchAssignTokens(addresses, amounts, classes);
@@ -306,7 +310,7 @@ contract('NaviToken', accounts => {
         classes = [];
         for (let i = 0; i < 100; i++) {
             addresses.push(makePseudoAdress());
-            amounts.push(1000);
+            amounts.push(makeTokens(1000));
             classes.push(2);
         }
         await token.batchAssignTokens(addresses, amounts, classes);

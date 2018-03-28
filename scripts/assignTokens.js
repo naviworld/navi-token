@@ -4,7 +4,7 @@ const path = require('path');
 const config = require('./../deploy/config');
 
 const CHUNKSIZE_FILEPATH = path.resolve(__dirname) + '/../deploy/PARAMS/chunk_size.txt'
-const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../deploy/OUTPUTS/contributor_input_accounts_amounts.cvs'
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../deploy/contributor_input_accounts_amounts.cvs'
 const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/../deploy/PARAMS/assign_interval_sec.txt'
 const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../deploy/OUTPUTS/smart-contract-address.txt'
 
@@ -25,7 +25,12 @@ const NaviToken = require('./../build/contracts/NaviToken.json');
 const Web3 = require('web3');
 
 const provider = require('./LedgerProvider')(config.networkId, config.networkName);
-web3 = new Web3(provider);
+const web3 = new Web3(provider);
+
+const BigNumber = web3.BigNumber;
+const decimals = 18;
+
+const makeTokens = amount => new BigNumber(amount).mul(10 ** decimals).floor();
 
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
@@ -83,9 +88,9 @@ web3.eth.getAccounts( (error, result) => {
         }else{
 
           let parsedRaw = accounts[i].split(",");
-          if(parsedRaw.length === 4){
+          if(parsedRaw.length === 4) {
             addresses.push('0x' + parsedRaw[1]);
-            amounts.push(parseInt(parsedRaw[2]));
+            amounts.push(makeTokens(parseFloat(parsedRaw[2])));
             classes.push(parseInt(parsedRaw[3]));
             numToSend++;
           }
@@ -110,9 +115,9 @@ web3.eth.getAccounts( (error, result) => {
       console.log('.......................................................................')
     }
 
-    function sendAssignChunkToSmartContract(contractAddress, vaddr, vamounts, vclass, numToSend) {
+    function sendAssignChunkToSmartContract(contractAddress, addrs, amounts, classes, numToSend) {
       console.log("started sendAssignChunkToSmartContract" );
-      dataparam = naviContract.batchAssignTokens.getData(vaddr, vamounts, vclass);
+      dataparam = naviContract.batchAssignTokens.getData(addrs, amounts, classes);
       //console.log("dataparam = " + dataparam );
 
       console.log("estimating gas... ");
@@ -138,7 +143,7 @@ web3.eth.getAccounts( (error, result) => {
           }
           console.log("gasOk = " + gasOk );
 
-          naviContract.batchAssignTokens(vaddr, vamounts, vclass, { gas: estimatedGas, gasPrice: config.gasPrice },  function(error, result){
+          naviContract.batchAssignTokens(addrs, amounts, classes, { gas: estimatedGas, gasPrice: config.gasPrice },  function(error, result){
             if (!error) {
               console.log(" batchAssignTokens OK: " + result);  // OK
             } else {

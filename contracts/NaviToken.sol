@@ -14,7 +14,7 @@ contract NaviToken is StandardToken, Ownable {
     /* Overriding some ERC20 variables */
     string public constant name      = "NaviToken";
     string public constant symbol    = "NAVI";
-    uint8 public constant decimals = 18;
+    uint8 public constant decimals   = 18;
 
     uint256 public constant MAX_NUM_NAVITOKENS    = 1000000000 * 10 ** uint256(decimals);
     uint256 public constant START_ICO_TIMESTAMP   = 1519912800;  // TODO: line to uncomment for the PROD before the main net deployment
@@ -65,7 +65,7 @@ contract NaviToken is StandardToken, Ownable {
         //Looping into input arrays to assign target amount to each given address
         for (uint256 index = 0; index < _addr.length; index++) {
             address toAddress = _addr[index];
-            uint amount = _amounts[index].mul(10 ** uint256(decimals));
+            uint amount = _amounts[index];
             DefrostClass defrostClass = _defrostClass[index]; // 0 = ico contributor, 1 = reserve and team , 2 = advisor
 
             totalSupply = totalSupply.add(amount);
