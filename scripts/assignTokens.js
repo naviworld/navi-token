@@ -32,6 +32,8 @@ const decimals = 18;
 
 const makeTokens = amount => new BigNumber(amount).mul(10 ** decimals).floor();
 
+const fixAddressPrefix = address => address.indexOf('0x') === -1 ? '0x' + address : address;
+
 naviContract = web3.eth.contract(NaviToken.abi).at(contractAddress);
 
 web3.eth.getAccounts( (error, result) => {
@@ -50,6 +52,8 @@ web3.eth.getAccounts( (error, result) => {
 
     // read account/amounts file to assign -------------------------------------------------
     let accounts  = fs.readFileSync(ACCOUNTSAMOUNTS_FILEPATH).toString().split('\n');
+
+    console.log('Processing contributors number = ' + accounts.length);
 
     accounts.shift(); // remove cvs headers
 
@@ -89,7 +93,7 @@ web3.eth.getAccounts( (error, result) => {
 
           let parsedRaw = accounts[i].split(",");
           if(parsedRaw.length === 4) {
-            addresses.push('0x' + parsedRaw[1]);
+            addresses.push(fixAddressPrefix(parsedRaw[1]));
             amounts.push(makeTokens(parseFloat(parsedRaw[2])));
             classes.push(parseInt(parsedRaw[3]));
             numToSend++;

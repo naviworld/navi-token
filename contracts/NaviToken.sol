@@ -5,8 +5,8 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract NaviToken is StandardToken, Ownable {
-    event Assigned(address indexed to, uint256 amount, uint256 defrostClass);
     event AssignmentStopped();
+    event Frosted(address indexed to, uint256 amount, uint256 defrostClass);
     event Defrosted(address indexed to, uint256 amount, uint256 defrostClass);
 
 	using SafeMath for uint256;
@@ -79,13 +79,13 @@ contract NaviToken is StandardToken, Ownable {
                 // Iced account. The balance is not affected here
                 icedBalancesReserveAndTeam.push(toAddress);
                 mapIcedBalancesReserveAndTeamFrosted[toAddress] = mapIcedBalancesReserveAndTeamFrosted[toAddress].add(amount);
+                Frosted(toAddress, amount, uint256(defrostClass));
             } else if (defrostClass == DefrostClass.Advisor) {
                 // advisors account: tokens to defrost
                 icedBalancesAdvisors.push(toAddress);
                 mapIcedBalancesAdvisors[toAddress] = mapIcedBalancesAdvisors[toAddress].add(amount);
+                Frosted(toAddress, amount, uint256(defrostClass));
             }
-
-            Assigned(toAddress, amount, uint256(defrostClass));
         }
     }
 

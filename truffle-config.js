@@ -9,14 +9,9 @@ module.exports = {
       port: 8545,
       network_id: '*', // eslint-disable-line camelcase
     },
-    rinkeby: {
-      provider: infuraProvider(4,'rinkeby'),
-      network_id: 4, // eslint-disable-line camelcase
-      gasPrice: config.gasPrice
-    },
-    live: {
-      provider: infuraProvider(1,'mainnet'),
-      network_id: 1, // eslint-disable-line camelcase
+    main: {
+      provider: infuraProvider(config.networkId, config.networkName),
+      network_id: config.networkId, // eslint-disable-line camelcase
       gasPrice: config.gasPrice
     },
     ganache: {
