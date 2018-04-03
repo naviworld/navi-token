@@ -16,15 +16,6 @@ contract('NaviToken', function(accounts) {
     });
   });
 
-  it("should retrieve NaviToken owner balance (account[0])", function() {
-    return NaviToken.deployed().then(function(instance) {
-      return instance.balanceOf.call(accounts[0]);
-    }).then(function(balance) {
-      console.log("balance accounts[0] = " + balance);
-      assert.equal(balance, '1e+26', "owner balance amount error");
-    });
-  });
-
   it("should retrieve start ICO timestamp ", function() {
     return NaviToken.deployed().then(function(instance) {
       return instance.START_ICO_TIMESTAMP();

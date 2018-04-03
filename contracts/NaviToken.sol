@@ -45,12 +45,6 @@ contract NaviToken is StandardToken, Ownable {
     }
 
     function NaviToken() public {
-        uint256 amountReserve    = MAX_NUM_NAVITOKENS.mul(10).div(100);  // 10% allocated and controlled by the company
-        balances[owner]          = amountReserve;
-        totalSupply              = amountReserve;
-
-        Transfer(address(0), owner, amountReserve);
-
         // for test only: set START_ICO to contract creation timestamp
         //START_ICO_TIMESTAMP = now; // TODO: line to remove before the main net deployment
     }
