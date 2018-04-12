@@ -1,10 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
+String.prototype.isEmpty = function() {
+  return (this.length === 0 || !this.trim());
+};
+
 const config = require('./../deploy/config');
 
+const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../deploy/contributors.csv';
+
 const CHUNKSIZE_FILEPATH = path.resolve(__dirname) + '/../deploy/PARAMS/chunk_size.txt'
-const ACCOUNTSAMOUNTS_FILEPATH = path.resolve(__dirname) + '/../deploy/contributor_input_accounts_amounts.cvs'
 const INTERVALSEC_FILEPATH = path.resolve(__dirname) + '/../deploy/PARAMS/assign_interval_sec.txt'
 const CONTRACTADDRESS_FILEPATH = path.resolve(__dirname) + '/../deploy/OUTPUTS/smart-contract-address.txt'
 
@@ -53,8 +58,6 @@ web3.eth.getAccounts( (error, result) => {
     // read account/amounts file to assign -------------------------------------------------
     let accounts  = fs.readFileSync(ACCOUNTSAMOUNTS_FILEPATH).toString().split('\n');
 
-    console.log('Processing contributors number = ' + accounts.length);
-
     accounts.shift(); // remove cvs headers
 
     console.log('Processing contributors number = ' + accounts.length);
@@ -92,7 +95,7 @@ web3.eth.getAccounts( (error, result) => {
         }else{
 
           let parsedRaw = accounts[i].split(",");
-          if(parsedRaw.length === 4) {
+          if(parsedRaw.length >= 4 && !parsedRaw[0].isEmpty()) {
             addresses.push(fixAddressPrefix(parsedRaw[1]));
             amounts.push(makeTokens(parseFloat(parsedRaw[2])));
             classes.push(parseInt(parsedRaw[3]));
@@ -102,7 +105,7 @@ web3.eth.getAccounts( (error, result) => {
       }
 
       console.log('numToSend = ' + numToSend + '  - addresses.length = '+addresses.length + '  -  amounts.length = '+  amounts.length);
-      if(numToSend === addresses.length && numToSend === amounts.length && numToSend === classes.length)
+      if(numToSend === addresses.length && numToSend === amounts.length && numToSend === classes.length && numToSend > 0)
       {
         console.log('calling timerAssignFunction ....... ');
         console.log('param =  ' + contractAddress + ' ' + addresses +' ' + numToSend);
@@ -132,7 +135,7 @@ web3.eth.getAccounts( (error, result) => {
         let estimatedGas = result;
 
         console.log("estimate = " + estimatedGas );
-        estimatedGas = parseInt(estimatedGas + estimatedGas*0.1);
+        estimatedGas = parseInt(estimatedGas + estimatedGas * 0.1);
 
         web3.eth.getBlock("latest", (error, result) => {
           let gasLimit = result.gasLimit;
