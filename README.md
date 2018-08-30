@@ -10,4 +10,4 @@ Node v7.6 or higher
 
 ## License
 
-NVT is open source and distributed under the GPL v3 license.
+NAVI is open source and distributed under the GPL v3 license.
